@@ -13,19 +13,19 @@ const ffmpeg = process.env.FFMPEG ?? 'ffmpeg';
 const ff = (...args) => execFileSync(ffmpeg, ['-hide_banner', '-v', 'error', '-y', ...args], { stdio: 'inherit' });
 fs.mkdirSync(out, { recursive: true });
 
-const stills = { idle: 'eyes_open', closed: 'eyes_closed', study: 'study', active: 'plan' };
+const stills = { idle: 'eyes_open', closed: 'eyes_closed', study: 'study', active: 'plan', cheer: 'cheer' };
 for (const [input, output] of Object.entries(stills)) {
   ff('-i', path.join(source, `${input}.png`), '-vf',
     'format=rgba,premultiply=inplace=1,scale=448:448:flags=lanczos,unpremultiply=inplace=1,pad=512:512:32:32:color=0x00000000',
     '-frames:v', '1', '-pix_fmt', 'rgba', path.join(out, `${output}.png`));
 }
-// 알림·춤·응원은 같은 환호 그림에 서로 다른 움직임을 준다. 공식 애니메이션 영상이 아니다.
+// 알림·춤은 짧게 손을 내민 자세, 응원은 부채를 든 축하 자세. 공식 애니메이션 영상이 아니다.
 const fps = 24, duration = 4;
 const clips = {
   study: { input: 'study', x: '0', y: '2*sin(2*PI*t/4)', motion: 'gentle-bob' },
   plan: { input: 'plan', x: '0', y: '-8*(1-cos(2*PI*t))', motion: 'reminder-hop' },
   dance: { input: 'plan', x: '10*sin(2*PI*t)', y: '-5*(1-cos(4*PI*t))', motion: 'side-to-side' },
-  cheer: { input: 'plan', x: '0', y: '-12*(1-cos(2*PI*t))', motion: 'cheer-hop' },
+  cheer: { input: 'cheer', x: '0', y: '-12*(1-cos(2*PI*t))', motion: 'cheer-hop' },
 };
 const meta = {};
 for (const [name, c] of Object.entries(clips)) {
@@ -37,7 +37,7 @@ for (const [name, c] of Object.entries(clips)) {
     path.join(out, `${name}.webm`));
   meta[name] = { file: `${name}.webm`, poster: `${name}.png`, size: 512, fps,
     frames: fps * duration, duration, scene: false, alpha: true,
-    source: `artwork/usagi/${name === 'study' ? 'study' : 'active'}.png`, motion: c.motion };
+    source: `artwork/usagi/${{ study: 'study', plan: 'active', cheer: 'cheer' }[c.input]}.png`, motion: c.motion };
 }
 fs.writeFileSync(path.join(out, 'video.json'), JSON.stringify(meta, null, 2) + '\n');
 console.log('Usagi: 6 PNGs + 4 transparent VP9 loops → assets/characters/usagi');

@@ -1,9 +1,29 @@
 {
   "tool": "built-in image_gen",
+  "revision": 2,
   "created": "2026-10-16",
-  "reference": "https://www.anime-chiikawa.jp/images/img_chara_03.png",
+  "idleUnchanged": true,
   "idle": "Use case: illustration-story. Asset type: transparent desktop mascot sprite for a personal Chiikawa fan app. Reference image 1 is official Usagi appearance only, not a graphic to reproduce with its caption. Draw a clean, faithful fan-art Usagi (うさぎ) from Chiikawa: plump pale buttery cream body, very long upright rounded ears with pink inner ears, dark brown thick slightly organic outlines, small shiny round dark eyes, tiny omega mouth, pink blush with three fine marks, tiny hands and feet. Match simple flat 2D anime appearance and proportions of reference; no fur, realism, clothes, jewelry, lettering, watermark, card, background or shadow. One character only. Canvas square, whole ears and feet visible with at least 8% margin on all sides, body centered, footprint fills about 80% height. True transparent background. Pose: neutral standing front view, feet together, hands relaxed by sides, eyes open, cute confident mischievous expression. This is the idle base pose; compact silhouette readable at 112 pixels.",
-  "closed": "Use case: precise-object-edit. Edit the supplied transparent Usagi idle sprite. Change ONLY the two eyes into gently closed curved dark-brown lines for a blink. Every other pixel-level feature must stay unchanged in size, position and shape: ears, outline, mouth, eyebrows, cheeks, arms, feet, canvas and transparent padding. No text, new details or shading. Same square dimensions, true transparent background.",
-  "study": "Use case: illustration-story. Asset type: transparent desktop mascot sprite for a personal Chiikawa fan app. Reference image 1 is official Usagi appearance only, not a graphic to reproduce with its caption. Draw a clean, faithful fan-art Usagi (うさぎ) from Chiikawa: plump pale buttery cream body, very long upright rounded ears with pink inner ears, dark brown thick slightly organic outlines, small shiny round dark eyes, tiny omega mouth, pink blush with three fine marks, tiny hands and feet. Match simple flat 2D anime appearance and proportions of reference; no fur, realism, clothes, jewelry, lettering, watermark, card, background or shadow. One character only. Canvas square, whole ears and feet visible with at least 8% margin on all sides, body centered, footprint fills about 80% height. True transparent background. Reference image 1 is the app's idle sprite, preserve its exact character identity, palette and line style. Pose: Usagi sitting absorbed in a small open cream book held low in both hands, eyes looking down at the pages with a mischievous but focused little smile. Tiny legs visible below the book. No desk, words, text or extra objects; the book is the only prop. This is an app-specific focused study fan-art pose, not an official anime scene.",
-  "active": "Use case: illustration-story. Asset type: transparent desktop mascot sprite for a personal Chiikawa fan app. Reference image 1 is official Usagi appearance only, not a graphic to reproduce with its caption. Draw a clean, faithful fan-art Usagi (うさぎ) from Chiikawa: plump pale buttery cream body, very long upright rounded ears with pink inner ears, dark brown thick slightly organic outlines, small shiny round dark eyes, tiny omega mouth, pink blush with three fine marks, tiny hands and feet. Match simple flat 2D anime appearance and proportions of reference; no fur, realism, clothes, jewelry, lettering, watermark, card, background or shadow. One character only. Canvas square, whole ears and feet visible with at least 8% margin on all sides, body centered, footprint fills about 80% height. True transparent background. Reference image 1 is the app's idle sprite, preserve its exact character identity, palette and line style. Pose: Usagi full body facing front, both tiny arms raised outward in a joyful triumphant cheer, tiny feet slightly apart, wide open happy mouth with a little pink inside, lively confident eyes. Long ears upright and fully visible, no objects or motion marks, no text. This will be used for gentle hop/dance/reminder loops. An energetic but compact silhouette."
+  "inputs": {
+    "closed": [
+      "artwork/usagi/idle.png"
+    ],
+    "study": [
+      "artwork/usagi/idle.png",
+      "kitan-drawing official product photo; see references.json"
+    ],
+    "active": [
+      "odm-ura licensed illustration; see references.json",
+      "artwork/usagi/idle.png"
+    ],
+    "cheer": [
+      "odm-celebration licensed illustration; see references.json",
+      "artwork/usagi/idle.png"
+    ],
+    "cheerCorrection": [
+      "generated result of cheer prompt",
+      "odm-celebration licensed illustration; see references.json"
+    ]
+  },
+  "cheerCorrection": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: a transparent Usagi sprite holding two fans. It contains an anatomy mistake: FOUR feet. Image 2 is the official pose reference showing the correct TWO short feet pointing out to the lower left and lower right. Make ONE strictly localized correction to image 1: REMOVE the TWO little downward dangling toes/feet at the very bottom center, and replace that tiny part of the bottom outline with a single smooth rounded belly arc continuous with the round body, exactly like image 2. KEEP the two side-facing little feet at the lower left and lower right. Keep both tiny hands holding the fans unchanged. Do NOT remove side feet. Do NOT add any new feet or toes. Preserve absolutely everything else from image 1: head, ears, eyes, eyebrows, mouth, chin mark, cheeks, two fans, hands, all palette, sizes, centering, transparent padding and square canvas. No background, motion lines, text, shadows or new decorations. True transparent background. Final anatomy: TWO hands holding TWO fans, exactly TWO sideways feet, smooth round bottom belly with NO dangling center toes."
 }
