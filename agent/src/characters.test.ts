@@ -42,18 +42,18 @@ test("우사기: 저장·재시작·SSE·기본 문구에 적용되고 사용자
   const restarted = new Settings(loadConfig({}, saved), { path, env: {} });
   assert.equal(restarted.view().character, "usagi");
   assert.equal(phrase("hello"), "내 인사");
-  assert.equal(phrase("merge_ask", { title: "수정" }), "'수정' PR을 머지할까?");
+  assert.equal(phrase("merge_ask", { title: "수정" }), "하아~~?('수정' PR을 머지할까?)");
 });
 
-test("우사기: 중요 안내에는 외침이 없고, 인사에 외침을 두 번 붙이지 않는다", () => {
+test("우사기: 중요 안내의 사실·질문을 괄호에 남기고, 외침을 두 번 붙이지 않는다", () => {
   setCharacter("usagi");
   const serious = ["meeting_alert", "proposal_ask", "proposal_ask_fix", "proposal_go",
     ...Object.keys(CHARACTERS.usagi.phrases).filter((k) => /^(fix_|merge_|followup_)/.test(k))];
   for (const k of serious) for (const text of CHARACTERS.usagi.phrases[k]) {
-    assert.doesNotMatch(text, /야하|우라|푸루|하\?/u, k);
+    assert.match(text, /^(?:우나|하아~~\?)\(.+\)$/u, k);
   }
   for (let i = 0; i < 40; i++) {
-    const text = "야하! 오늘도 같이 보자!";
+    const text = "야하!(오늘도 같이 보자!)";
     assert.equal(voice(text, `usagi-${i}`), text);
     for (const kind of ["error", "merge", "approval", "meeting", "progress"] as const) {
       assert.equal(voice("확인이 필요해.", `usagi-${i}`, { kind }), "확인이 필요해.");
@@ -140,7 +140,8 @@ test("말투 양념: 반말 캐릭터는 '~요'·시사 감정 표시를 절대 
       assert.equal(voice(text, `seed-${i}`, { kind: "error" }), text);
       assert.equal(voice(text, `seed-${i}`, { kind: "meeting" }), text);
     }
-    assert.ok(changed > 40 && changed < 200, `${id}: 양념 빈도 ${changed}/400`);
+    if (id === "usagi") assert.equal(changed, 0, "우사기는 완성된 외침·괄호에 양념을 다시 붙이지 않는다");
+    else assert.ok(changed > 40 && changed < 200, `${id}: 양념 빈도 ${changed}/400`);
     assert.doesNotMatch(phraseVoice("todo_new_one", { title: "x" }, "s1"), /요/);
   }
 });
