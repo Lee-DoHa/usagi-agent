@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-// 고를 수 있는 캐릭터: 시사(기본)·하치와레·랏코·모몽가. 캐릭터마다 이름·말투(모델 프롬프트)·말투 양념(voice.ts)·
+// 고를 수 있는 캐릭터: 시사(기본)·하치와레·랏코·모몽가·우사기. 캐릭터마다 이름·말투(모델 프롬프트)·말투 양념(voice.ts)·
 // 고정 문구 기본값(phrases.ts)·AI 없이 하는 정해진 말(local-mode.ts)이 다르다. 그림·영상은 데스크톱이 같은 id 로 고른다
 // (assets/characters/<id>/, 시사는 예전 그대로 assets/character/).
 // 고르는 곳: 설정 창 「캐릭터」 → PUT /settings { character } → config.json character. 데몬은 setCharacter 로 바로 바꾼다.
 // 사용자가 설정 창 「문구」에서 고친 문구는 캐릭터와 상관없이 그대로 쓴다(phrases.ts).
 
-export const CHARACTER_IDS = ["shisa", "hachi", "rakko", "momonga"] as const;
+export const CHARACTER_IDS = ["shisa", "hachi", "rakko", "momonga", "usagi"] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 export const DEFAULT_CHARACTER: CharacterId = "shisa";
 export const isCharacterId = (v: unknown): v is CharacterId => typeof v === "string" && (CHARACTER_IDS as readonly string[]).includes(v);
@@ -50,7 +50,7 @@ const SHISA: Character = {
   lines: {},
 };
 
-// 하치와레·랏코·모몽가의 말은 전부 assets/characters/lines.json 에 있다(사람이 고치는 파일 — 데스크톱도 같은 파일을 쓴다).
+// 시사 외 캐릭터의 말은 전부 assets/characters/lines.json 에 있다(사람이 고치는 파일 — 데스크톱도 같은 파일을 쓴다).
 // 레포에서도, 앱 번들(Resources/agent/src ↔ Resources/assets)에서도 ../../assets 다
 export const LINES_FILE = fileURLToPath(new URL("../../assets/characters/lines.json", import.meta.url));
 type LinesEntry = {
@@ -72,7 +72,7 @@ function fromLines(id: Exclude<CharacterId, "shisa">): Character {
   };
 }
 
-export const CHARACTERS: Record<CharacterId, Character> = { shisa: SHISA, hachi: fromLines("hachi"), rakko: fromLines("rakko"), momonga: fromLines("momonga") };
+export const CHARACTERS: Record<CharacterId, Character> = { shisa: SHISA, hachi: fromLines("hachi"), rakko: fromLines("rakko"), momonga: fromLines("momonga"), usagi: fromLines("usagi") };
 
 let current: CharacterId = DEFAULT_CHARACTER;
 // config.json character(모르는 값이면 시사). 설정 창이 바꾸면 Settings 가 다시 부른다 — 다음 말풍선·답부터 바로

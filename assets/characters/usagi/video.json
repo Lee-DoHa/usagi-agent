@@ -1,0 +1,50 @@
+{
+  "study": {
+    "file": "study.webm",
+    "poster": "study.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/study.png",
+    "motion": "gentle-bob"
+  },
+  "plan": {
+    "file": "plan.webm",
+    "poster": "plan.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/active.png",
+    "motion": "reminder-hop"
+  },
+  "dance": {
+    "file": "dance.webm",
+    "poster": "dance.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/active.png",
+    "motion": "side-to-side"
+  },
+  "cheer": {
+    "file": "cheer.webm",
+    "poster": "cheer.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/active.png",
+    "motion": "cheer-hop"
+  }
+}
