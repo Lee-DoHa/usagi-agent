@@ -40,7 +40,7 @@ import { NEW_DAEMON_CONFIG, cleanSetupPatch, openSetupAtLaunch, setupView } from
 import { attachConsole, assembleBundle, collectLogFiles, createRing, formatLogLine, redact, shapeConnectorsSafe } from './src/debug-share.js';
 import { bundlePaths, launchdOwns, spawnDecision, daemonEnv, loginItemPlan, loginItemHint, defaultLoginPref, daemonStatusKind, LAUNCHD_DAEMON, DAEMON_LOG } from './src/bundle.js';
 import { createDaemonHost } from './src/daemon-host.js';
-import { RELEASES_API, checkDue, latestRelease, shouldNotify, updateBubble } from './src/update-check.js';
+import { RELEASES_API, checkDue, newestRelease, shouldNotify, updateBubble } from './src/update-check.js';
 import { denied } from './src/denied.js';
 import { squirrelPlan, loginItemTarget, appUserModelId } from './src/squirrel.js';
 
@@ -1823,7 +1823,7 @@ async function checkForUpdate() {
     if (!r.ok) return; // 아직 릴리스가 없으면 404
     const target = { platform: process.platform, arch: process.arch, portable: isPortableWin(), checkout: isCheckout() };
     // 이 PC 용 파일(Setup.exe·zip·dmg)이 아직 안 올라왔으면 null: 알림 기록을 안 남기니 다음 확인 때 다시 본다
-    const rel = latestRelease(await r.json(), target);
+    const rel = newestRelease(await r.json(), target);
     if (!rel || !shouldNotify({ latest: rel.version, current: app.getVersion(), notified: state.updateNotified })) return;
     state.updateNotified = rel.version;
     saveState();

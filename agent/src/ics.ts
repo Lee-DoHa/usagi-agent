@@ -229,12 +229,23 @@ export function occurrenceDates(start: IcsTime, rule: Record<string, string>, to
     if (dayNum(x) < startDay) return true;
     const ms = toUtc(x);
     if (ms > untilMs || made >= count || ms > stopAfterMs) return false;
+    if (months.length && !months.includes(x.mo)) return true;
+    const last = daysIn(x.y, x.mo);
+    if (mdays.length && !mdays.some((d) => x.d === (d > 0 ? d : last + d + 1))) return true;
+    if (days.length && (freq === "DAILY" || freq === "WEEKLY") && !days.some((d) => d.wd === weekday(x))) return true;
     made++;
     if (ms >= startAfterMs) out.push(x);
     return out.length < max;
   };
   if (!["DAILY", "WEEKLY", "MONTHLY", "YEARLY"].includes(freq)) return [s0];
   for (let k = 0; k < 200000; k++) {
+    // 필터에 맞는 날이 없는 달도 창을 넘으면 멈춘다.
+    const mi0 = start.mo - 1 + k * interval;
+    const period = freq === "DAILY" ? fromDayNum(startDay + k * interval)
+      : freq === "WEEKLY" ? fromDayNum(startDay - ((weekday(s0) + 6) % 7) + k * interval * 7)
+      : freq === "MONTHLY" ? { y: start.y + Math.floor(mi0 / 12), mo: mi0 % 12 + 1, d: 1 }
+      : { y: start.y + k * interval, mo: 1, d: 1 };
+    if (toUtc(period) > Math.min(stopAfterMs, untilMs) || made >= count) return out;
     let cands: Ymd[] = [];
     if (freq === "DAILY") cands = [fromDayNum(startDay + k * interval)];
     else if (freq === "WEEKLY") {

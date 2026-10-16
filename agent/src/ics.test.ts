@@ -259,3 +259,13 @@ test("캘린더 off: 동기화·알림 없음", async () => {
   assert.equal(fired, 0);
   stop();
 });
+
+
+test("DAILY 평일 필터 뒤에 COUNT를 세고 BYMONTH·BYMONTHDAY 조합도 적용", () => {
+  const event = (rule: string) => `BEGIN:VCALENDAR\nBEGIN:VEVENT\nUID:filtered\nDTSTART:20261016T000000Z\nDTEND:20261016T003000Z\nRRULE:${rule}\nEND:VEVENT\nEND:VCALENDAR`;
+  const dates = (rule: string, end = "2026-11-01T00:00:00Z") => eventsInWindow(event(rule), Date.parse("2026-10-16T00:00:00Z"), Date.parse(end), { timeZone: "Asia/Seoul" }).map(e => e.start.slice(0, 10));
+  assert.deepEqual(dates("FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;COUNT=5"), ["2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22"]);
+  assert.deepEqual(dates("FREQ=DAILY;BYMONTH=11;COUNT=2", "2026-11-04T00:00:00Z"), ["2026-11-01", "2026-11-02"]);
+  assert.deepEqual(dates("FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=16;COUNT=2", "2027-05-01T00:00:00Z"), ["2026-10-16", "2027-04-16"]);
+  assert.deepEqual(dates("FREQ=MONTHLY;BYMONTHDAY=31;BYMONTH=2"), []);
+});
