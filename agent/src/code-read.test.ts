@@ -157,3 +157,15 @@ test("로컬 체크아웃 상태: 지금 브랜치 + origin/HEAD·origin/develop
   assert.doesNotMatch(checkoutNote({ branch: "main", behind: [{ ref: "origin/main", n: 0 }] })!, /git show/);
   assert.equal(checkoutState(mkdtempSync(join(tmpdir(), "cy-nogit-"))), undefined);
 });
+
+
+test("비밀 파일 이름을 숨긴 파일·디렉터리 심볼릭 링크도 차단", () => {
+  const f = fixture(), cwd = join(f.root, "app");
+  symlinkSync(join(cwd, ".env"), join(cwd, "notes.txt"));
+  const o = { roots: f.roots, cwd };
+  assert.equal(isCodeReadCall("Read", { file_path: join(cwd, "notes.txt") }, o).allow, false);
+  mkdirSync(join(cwd, ".env.hidden"));
+  writeFileSync(join(cwd, ".env.hidden", "nested.txt"), "fake");
+  symlinkSync(join(cwd, ".env.hidden"), join(cwd, "docs"), "junction");
+  assert.equal(isCodeReadCall("Read", { file_path: join(cwd, "docs", "nested.txt") }, o).allow, false);
+});

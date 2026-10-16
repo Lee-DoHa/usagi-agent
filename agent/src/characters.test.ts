@@ -67,9 +67,10 @@ test("시스템 프롬프트: 실제로 모델에 가는 글이 바뀐다(Gemini
   setCharacter("shisa");
   await ask(cfg, "안녕", null, undefined, opts);
   assert.equal(sent.length, 3);
-  assert.equal(sent[0], CHAT_SYSTEM);
+  assert.ok(sent[0].startsWith(CHAT_SYSTEM));
+  assert.match(sent[0], /현재 AI 연결은 도구를 직접 호출하지 않는다/);
   assert.ok(sent[1].startsWith(CHARACTERS.momonga.intro) && !sent[1].includes(CHARACTERS.shisa.tone));
-  assert.equal(sent[2], CHAT_SYSTEM);
+  assert.equal(sent[2], sent[0]);
 });
 
 test("고정 문구: 캐릭터 기본 → 고친 문구가 이긴다, 캐릭터 문구는 아는 키·아는 자리표시만", () => {

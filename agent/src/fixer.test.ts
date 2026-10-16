@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { detectTestCommand, isBlockedBash, resolveRepo, slugify } from "./fixer.ts";
+import { detectTestCommand, isBlockedBash, mergePr, resolveRepo, slugify } from "./fixer.ts";
 
 test("resolveRepo: 허용 루트 안의 git 레포만", () => {
   const root = mkdtempSync(join(tmpdir(), "cy-root-"));
@@ -47,4 +47,14 @@ test("detectTestCommand", () => {
 test("slugify: 한글만이면 기본값", () => {
   assert.equal(slugify("Fix Button Color!"), "fix-button-color");
   assert.equal(slugify("버튼 색"), "change");
+});
+
+
+test("머지는 비동기로 승인 SHA를 고정하고 제한 시간 내 실행", async () => {
+  let args: string[] = [], timeout: number | undefined;
+  const result = await mergePr("https://github.com/o/r/pull/1", "a".repeat(40), async (_file, argv, _cwd, _env, limit) => { args = argv; timeout = limit; return "merged"; });
+  assert.equal(result, "merged");
+  assert.deepEqual(args.slice(-2), ["--match-head-commit", "a".repeat(40)]);
+  assert.equal(timeout, 120000);
+  await assert.rejects(mergePr("https://github.com/o/r/pull/1", "bad", async () => { throw new Error("must not run"); }), /커밋/);
 });

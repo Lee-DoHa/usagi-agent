@@ -21,7 +21,7 @@ import { HARD_DENY, hardDeny, type GitState, type PermCtx } from "./permissions.
 
 const URL282 = "https://github.com/acme/speaker/pull/282";
 const pr = (o: Partial<PrStatus> = {}): PrStatus => ({
-  url: URL282, number: 282, repo: "acme/speaker", title: "스피커 볼륨", state: "OPEN",
+  url: URL282, number: 282, repo: "acme/speaker", title: "스피커 볼륨", state: "OPEN", headOid: "a".repeat(40),
   base: "main", head: "cy/volume-1", draft: false, mergeable: "MERGEABLE", review: "",
   checks: { pass: 3, pending: 0, fail: 0, failing: [] }, ...o,
 });

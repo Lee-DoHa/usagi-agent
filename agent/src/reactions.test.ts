@@ -307,6 +307,7 @@ function agentSetup() {
   const agent = new Agent(cfg as any, store, bus, slack, {
     think: async () => thought as any,
     runFix: async (_c, _p, step) => { step("🌿 워크트리 cy/b"); step("Edit a.ts"); step("🧪 npm test"); step("🚀 푸시 완료"); return { ok: true, summary: "바꿈", prUrl: "https://github.com/x/y/pull/1", branch: "cy/b", log: ["🧪 npm test"] }; },
+    prStatus: async () => ({ url: "https://github.com/x/y/pull/1", number: 1, repo: "x/y", title: "test", state: "OPEN" as const, base: "main", head: "cy/b", headOid: "a".repeat(40), draft: false, mergeable: "MERGEABLE" as const, review: "", checks: { pass: 1, pending: 0, fail: 0, failing: [] } }),
     mergePr: (url) => { merged.push(url); return "merged"; },
     git: async () => [],
   });

@@ -1,6 +1,6 @@
 // 새 버전 알림: 하루 한 번 GitHub Releases 의 최신 릴리스를 보고(인증 없이), 지금보다 새로우면 캐릭터 말풍선. 순수 로직.
-export const REPO_SLUG = 'cheo0y/shisa-agent';
-export const RELEASES_API = `https://api.github.com/repos/${REPO_SLUG}/releases/latest`;
+export const REPO_SLUG = 'Lee-DoHa/usagi-agent';
+export const RELEASES_API = `https://api.github.com/repos/${REPO_SLUG}/releases?per_page=100`;
 export const RELEASES_PAGE = `https://github.com/${REPO_SLUG}/releases`;
 export const CHECK_EVERY_MS = 24 * 60 * 60 * 1000;
 export const BUBBLE_ID = 'local-update';
@@ -62,12 +62,20 @@ export function latestRelease(json, target) {
   if (!json || typeof json !== 'object' || json.draft || json.prerelease) return null;
   const tag = typeof json.tag_name === 'string' ? json.tag_name.trim() : '';
   const p = parseVersion(tag);
-  if (!p) return null;
-  const version = tag.replace(/^v/, '');
+  if (!p || (p.pre && p.pre !== 'windows')) return null;
+  if (p.pre === 'windows' && target?.platform !== 'win32') return null;
+  const version = tag.replace(/^v/, '').replace(/-windows$/, '');
   const url = okLink(json.html_url, `${RELEASES_PAGE}/`) ? json.html_url : RELEASES_PAGE;
   if (!target || target.checkout) return { version, tag, url, asset: null };
   const asset = pickAsset(json.assets, target);
   return asset ? { version, tag, url, asset } : null;
+}
+
+// 플랫폼별로 파일이 있는 가장 높은 정식 버전. GitHub의 Latest 표시는 사용하지 않는다.
+export function newestRelease(releases, target) {
+  if (!Array.isArray(releases)) return null;
+  return releases.map((r) => latestRelease(r, target)).filter(Boolean)
+    .sort((a, b) => compareVersions(b.version, a.version))[0] ?? null;
 }
 
 // 지금 확인할 때인가: 켜져 있고, 마지막 확인이 하루 전보다 오래됐거나 없거나 시계가 거꾸로 갔으면

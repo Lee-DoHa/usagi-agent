@@ -22,7 +22,7 @@ import {
 
 const URL268 = "https://github.com/acme/speaker/pull/268";
 const ok268 = (o: Partial<PrStatus> = {}): PrStatus => ({
-  url: URL268, number: 268, repo: "acme/speaker", title: "스피커 dev 설정", state: "OPEN",
+  url: URL268, number: 268, repo: "acme/speaker", title: "스피커 dev 설정", state: "OPEN", headOid: "a".repeat(40),
   base: "develop", head: "cy/feat-speaker-dev-1c7c7a", draft: false, mergeable: "MERGEABLE", review: "",
   checks: { pass: 3, pending: 0, fail: 0, failing: [] }, ...o,
 });
@@ -105,7 +105,7 @@ test("하드 차단 이유가 다른 데로 보내지 않고 merges 로 카드�
 
 // ── 데몬 경로: 채팅 → 카드 + 말풍선, 결정 ──
 
-function setup(o: { status?: (ref: any) => PrStatus; converse?: any; mergePr?: (url: string) => string; runFix?: any } = {}) {
+function setup(o: { status?: (ref: any) => PrStatus; converse?: any; mergePr?: (url: string, sha: string) => string; runFix?: any } = {}) {
   const store = new Store(":memory:");
   const bus = new Bus();
   bus.setMood = () => {};
@@ -319,4 +319,31 @@ test("채팅에서 시킨 수정 작업이 PR 까지 가면 그 대화에 답 �
   // 머지 기록은 제안 id 하나(말풍선 ✓ 와 카드 ✓ 가 같은 것)
   assert.equal(bub.proposalId, JSON.parse((s.store.db.prepare("SELECT payload FROM pending_actions WHERE id = ?").get(cards[0].id) as any).payload).mergeId);
   assert.deepEqual(s.merged, []);
+});
+
+
+test("승인 뒤 커밋·대상 브랜치 변경은 재승인 없이 머지하지 않는다", async () => {
+  for (const changed of [{ headOid: "b".repeat(40) }, { base: "main" }, { head: "other-branch" }]) {
+    const s = setup();
+    const offer = await s.agent.requestMerge({ pr: URL268 }, { via: "chat" });
+    assert.ok(offer.action);
+    s.setStatus(() => ok268(changed));
+    const result = await s.agent.mergeDecide("pr-acme_speaker-268", "merge");
+    assert.equal(result.ok, false);
+    assert.match((result as any).error, /바뀌었어요/);
+    assert.deepEqual(s.merged, []);
+  }
+});
+
+test("승인한 SHA를 머지 실행 인자로 고정하고 옛 승인 기록은 막는다", async () => {
+  let expected = "";
+  const s = setup({ mergePr: (_url, sha) => { expected = sha; return "merged"; } });
+  await s.agent.requestMerge({ pr: URL268 }, { via: "chat" });
+  assert.equal((await s.agent.mergeDecide("pr-acme_speaker-268", "merge")).ok, true);
+  assert.equal(expected, "a".repeat(40));
+  const old = setup();
+  old.reactions.offerMerge({ id: "old", title: "old", prUrl: URL268 });
+  const blocked = await old.agent.mergeDecide("old", "merge");
+  assert.equal(blocked.ok, false);
+  assert.deepEqual(old.merged, []);
 });

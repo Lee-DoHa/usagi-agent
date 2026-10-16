@@ -29,7 +29,7 @@ import { isReadOnlyBash } from "./bash-readonly.ts";
 import { isSubagentTool, subagentCall } from "./subagents.ts";
 import type { ActionCard, ActionVia, PendingAction } from "./actions.ts";
 import { repoLocks, type RepoLocks } from "./repo-lock.ts";
-import { IS_WIN, bashPathWin, isFsRoot, msysToWin, pathKey, pathWithin, realish, samePath, winLocalPath, winNorm, winPathForms, winShellNorm, withFsMemo } from "./plat.ts";
+import { IS_WIN, isRealishUnknown, bashPathWin, isFsRoot, msysToWin, pathKey, pathWithin, realish, samePath, winLocalPath, winNorm, winPathForms, winShellNorm, withFsMemo } from "./plat.ts";
 
 export const PERMISSION_TTL_MS = 10 * 60e3;
 // 서비스·도구를 인자로 받는 MCP 중계 도구(이름이 …__invoke, 입력 { service, tool, args }) — 규칙·카드를 "서비스.도구" 단위로
@@ -83,7 +83,7 @@ const cyHomes = (c: PermCtx) => [...new Set([c.cyHome ?? HOME_DIR, resolve(homeO
 // Windows: 경로는 대소문자 무관·8.3 짧은 이름·끝 점·:스트림 — 비교는 실제 경로(realish) + pathKey 로(plat.ts). POSIX 는 예전 그대로
 const W = IS_WIN;
 const within = (p: string, dir: string) => (W ? pathWithin(p, dir) : p === dir || p.startsWith(dir.endsWith(sep) ? dir : dir + sep));
-const real = (p: string) => (W ? realish(p) : p);
+const real = (p: string) => realish(p);
 const baseOf = (p: string) => (W ? basename(pathKey(p)) : basename(p));
 // bash: 셸 글의 경로(Windows Git Bash 의 /c/Users/… → C:\Users\…). 파일 도구 경로는 Windows 경로 그대로
 const expandHome = (raw: string, c: PermCtx, bash = false) => {
@@ -103,7 +103,10 @@ const UNC_WHY = "UNC·장치 경로(\\\\서버\\… · \\\\?\\… · \\\\.\\…)
 function secretPathOne(raw0: string, c: PermCtx, env: boolean, bash: boolean): string | undefined {
   const raw = W ? winLocalPath(raw0) : raw0;
   if (raw === undefined) return UNC_WHY;
-  const p0 = real(resolve(c.cwd, expandHome(raw, c, bash)));
+  const lexical = resolve(c.cwd, expandHome(raw, c, bash));
+  if (env && lexical.split(sep).some((part) => /^\.env(\..*)?$/i.test(part) && !ENV_OK.test(part))) return "비밀일 수 있는 .env 파일";
+  const p0 = real(lexical);
+  if (isRealishUnknown(p0)) return "실제 파일 경로를 확인할 수 없음";
   const p = W ? winLocalPath(p0) : p0;
   if (p === undefined) return UNC_WHY;
   for (const h0 of cyHomes(c)) {
@@ -603,7 +606,7 @@ function substsOf(cmd: string): string[] {
   }
   return out;
 }
-function shellSegments(cmd: string): string[] {
+export function shellSegments(cmd: string): string[] {
   const src = stripHeredocs(cmd);
   const out: string[] = [];
   let cur = "", q: string | null = null;

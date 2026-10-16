@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
-import { mkdtempSync, mkdirSync } from "node:fs";
+import { mkdtempSync, mkdirSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Actions, PERMISSION } from "./actions.ts";
@@ -777,4 +777,16 @@ test("Windows: 실제 경로 조회는 한 판정 안에서 다시 쓰고, 풀�
   const t1 = performance.now();
   assert.ok(deny("Read", { file_path: deep }));
   assert.ok(performance.now() - t1 < 500);
+});
+
+test("macOS도 심볼릭 링크의 실제 비밀 경로를 하드 차단", () => {
+  writeFileSync(join(repo, ".env"), "REVIEW_FAKE=synthetic");
+  const alias = join(repo, "review-notes.txt");
+  symlinkSync(join(repo, ".env"), alias);
+  assert.equal(hardDeny("Read", { file_path: alias }, ctx).allow, false);
+  mkdirSync(ctx.cyHome!, { recursive: true });
+  writeFileSync(join(ctx.cyHome!, "config.json"), "{}");
+  const tokenAlias = join(repo, "review-settings.txt");
+  symlinkSync(join(ctx.cyHome!, "config.json"), tokenAlias);
+  assert.equal(hardDeny("Read", { file_path: tokenAlias }, ctx).allow, false);
 });

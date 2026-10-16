@@ -62,7 +62,7 @@ export interface SlackPort {
 export type Deps = {
   think: typeof realThink;
   runFix: (cfg: Config, p: Proposal, onStep: (s: string) => void) => Promise<FixResult>;
-  mergePr: (url: string) => string;
+  mergePr: (url: string, expectedHead: string) => string | Promise<string>;
   converse: Converse;
   askTodo: AskTodo; // 할 일 팝오버 한 턴
   describe: Describe; // 설명 없는 할 일을 펼칠 때 한 번(가벼운 모델)
@@ -421,13 +421,14 @@ export class Agent {
     r.mergeDeps = {
       merge: async (rec) => {
         // 채팅에서 요청한 머지(PR 상태가 있음): 머지 직전에 새로 읽고 실패한 검사·충돌·초안·닫힘이면 머지하지 않는다
-        if (rec.pr) {
-          const st = await this.deps.prStatus({ url: rec.prUrl, repo: rec.pr.repo, number: rec.pr.number });
-          const why = mergeBlock(st);
-          if (why) throw new Error(why);
-        }
+        if (!rec.pr?.headOid) throw new Error("승인 대상 커밋을 확인할 수 없어요. 머지를 새로 요청해 주세요");
+        const st = await this.deps.prStatus({ url: rec.prUrl, repo: rec.pr.repo, number: rec.pr.number });
+        const why = mergeBlock(st);
+        if (why) throw new Error(why);
+        if (st.headOid !== rec.pr.headOid || st.base !== rec.pr.base || st.head !== rec.pr.head)
+          throw new Error("승인 뒤 PR의 커밋이나 대상 브랜치가 바뀌었어요. 변경을 확인하고 머지를 새로 요청해 주세요");
         this.prs.delete(rec.id);
-        return this.deps.mergePr(rec.prUrl);
+        return this.deps.mergePr(rec.prUrl, rec.pr.headOid);
       },
       commit: (rec) => rec.pr ? this.deps.mergeCommit(rec.prUrl) : Promise.resolve(undefined),
       changed: (rec, ev) => this.actions.mirrorMerge(rec.id, ev),
@@ -679,7 +680,11 @@ ${meetingsContext(this.store) || "(로컬에 저장된 다가오는 회의 없�
           // 머지는 사용자 승인: 오버레이 ✓/✗/추가질문 + Slack 머지 버튼, 먼저 답한 쪽.
           // 채팅에서 시킨 작업이면 그 대화에도 머지 승인 카드(같은 머지 기록 — 말풍선·Slack 과 같이 결정된다)
           const ask = async (why?: string) => {
+            let snapshot;
+            try { snapshot = await this.deps.prStatus({ url: r.prUrl! }); } catch { /* 커밋을 모르면 머지는 차단 */ }
+            const blocked = snapshot ? mergeBlock(snapshot) : "PR 상태를 확인할 수 없어요. 머지를 새로 요청해 주세요";
             this.reactions!.offerMerge({ id: p.id, title: p.title, prUrl: r.prUrl!, summary: r.summary, branch: r.branch,
+              ...(snapshot ? { pr: infoOf(snapshot) } : {}), ...(blocked ? { blocked } : {}),
               tests: testsFromLog(r.log ?? steps), ...(done ? { slack: { channel: done.channel, ts: done.ts } } : {}) });
             if (p.threadId) await this.mergeCardAfterFix(p, r.prUrl!, why);
           };
@@ -872,7 +877,11 @@ ${meetingsContext(this.store) || "(로컬에 저장된 다가오는 회의 없�
     const url = this.prs.get(id) ?? this.store.proposal(id)?.result;
     if (!url?.startsWith("https://")) return "머지할 PR을 못 찾았어요";
     this.prs.delete(id);
-    const out = this.deps.mergePr(url);
+    const snapshot = await this.deps.prStatus({ url });
+    const blocked = mergeBlock(snapshot);
+    if (blocked) throw new Error(blocked);
+    if (!snapshot.headOid) throw new Error("머지 대상 커밋을 확인할 수 없어요");
+    const out = await this.deps.mergePr(url, snapshot.headOid);
     this.bus.bubble({ text: phrase("merge_done"), kind: "done", image: "merge_complete", ttlMs: 10e3, link: url });
     return out;
   }

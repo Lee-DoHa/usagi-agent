@@ -320,7 +320,7 @@ function brainPickView({ detected = {}, connected = [], current = '', onPick, on
   return screen({
     say: sayFor(whoId()).brain,
     title: '뇌(AI)를 연결할까요?',
-    identity: 'AI는 선택이에요. 하나만 고르면 되고, AI 없이 시작해도 나중에 설정에서 언제든 연결하거나 바꿀 수 있어요.',
+    identity: 'AI는 선택이에요. 연결하면 답변에 필요한 업무 맥락과 첨부 내용이 선택한 AI 회사로 전송돼요. 할 일·대화·설정은 내 컴퓨터에 저장되고, AI는 나중에도 바꿀 수 있어요.',
     extra: h('div.setup-picks', null, BRAIN_CHOICES.map((c) => {
       const found = c.agent ? detected[c.agent] === true : false;
       const linked = connected.includes(c.id);

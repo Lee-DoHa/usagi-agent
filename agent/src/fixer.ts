@@ -8,6 +8,7 @@ import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, realpathSync } from "node:fs";
 import { basename, dirname, join, resolve, sep } from "node:path";
+import { isShipCommandBlocked } from "./ship-guard.ts";
 import { HOME_DIR, type Config } from "./config.ts";
 import type { Proposal } from "./store.ts";
 import { loadInstructions } from "./instructions.ts";
@@ -92,16 +93,15 @@ export function detectTestCommand(dir: string, mainDir?: string): string[] | und
 }
 
 // 에이전트가 직접 커밋·푸시·머지하지 못하게
-const BLOCKED_BASH = /\bgit\s+(commit|push|merge|rebase|reset\s+--hard|checkout\s+(main|master))\b|\bgh\s+pr\s+(merge|create)\b|\brm\s+-rf\s+[\/~]/;
 // 서브에이전트 안의 Bash 도 이 훅을 거친다(SDK BaseHookInput.agent_id — subagents.ts). agent_id 로 건너뛰지 않는다
 export const noShipHook: HookCallback = async (input) => {
   if (input.hook_event_name !== "PreToolUse" || input.tool_name !== "Bash") return {};
   const cmd = String((input.tool_input as any)?.command ?? "");
-  return BLOCKED_BASH.test(cmd)
+  return isShipCommandBlocked(cmd)
     ? { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: "커밋·푸시·머지는 cy-agent가 직접 한다. 파일 수정과 테스트까지만 해." } }
     : {};
 };
-export const isBlockedBash = (cmd: string) => BLOCKED_BASH.test(cmd);
+export const isBlockedBash = (cmd: string) => isShipCommandBlocked(cmd);
 
 const FIX_SCHEMA = {
   type: "object",
@@ -678,6 +678,7 @@ async function defaultSessionExists(sessionId: string, cwd: string): Promise<boo
   return !!(await getSessionInfo(sessionId, { dir: cwd }));
 }
 
-export function mergePr(prUrl: string): string {
-  return execFileSync("gh", ["pr", "merge", prUrl, "--squash", "--delete-branch"], { encoding: "utf8" }).trim() || "머지 완료";
+export async function mergePr(prUrl: string, expectedHead: string, execute: typeof shAsync = shAsync): Promise<string> {
+  if (!/^[0-9a-f]{40,64}$/.test(expectedHead)) throw new Error("머지 대상 커밋이 필요해요");
+  return await execute("gh", ["pr", "merge", prUrl, "--squash", "--delete-branch", "--match-head-commit", expectedHead], process.cwd(), undefined, 120e3) || "머지 완료";
 }

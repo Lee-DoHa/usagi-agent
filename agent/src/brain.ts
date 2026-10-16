@@ -325,12 +325,12 @@ async function askOther<T>(provider: string, cfg: Config, prompt: string, schema
       const facts = opts.facts ?? {};
       return localThought(facts.now ?? new Date(), facts.open ?? [], facts.done ?? []) as T;
     }
-    const system = withCharacter(opts.system); // 캐릭터 말투(시사가 아니면 첫 문장·말투 줄을 바꾼다)
+    const system = (withCharacter(opts.system) ?? "") + "\n\n현재 AI 연결은 도구를 직접 호출하지 않는다. 제공된 업무 맥락과 첨부 내용으로 답하고, 없는 자료나 실행하지 않은 동작을 했다고 말하지 마라."; // 캐릭터 말투(시사가 아니면 첫 문장·말투 줄을 바꾼다)
     if (schema === null) {
-      const out = await remoteJson(provider as any, cfg, prompt, TEXT_SCHEMA, { system, model: opts.model, ...opts.deps }) as { reply?: string };
+      const out = await remoteJson(provider as any, cfg, prompt, TEXT_SCHEMA, { system, model: opts.model, blocks: opts.blocks, ...opts.deps }) as { reply?: string };
       return String(out?.reply ?? "") as T;
     }
-    return remoteJson(provider as any, cfg, prompt, schema, { system, model: opts.model, ...opts.deps }) as Promise<T>;
+    return remoteJson(provider as any, cfg, prompt, schema, { system, model: opts.model, blocks: opts.blocks, ...opts.deps }) as Promise<T>;
   });
 }
 

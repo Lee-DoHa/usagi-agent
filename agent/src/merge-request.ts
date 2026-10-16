@@ -17,7 +17,7 @@ export type PrChecks = { pass: number; pending: number; fail: number; failing: s
 export type Mergeable = "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
 export type PrStatus = {
   url: string; number: number; repo: string; title: string; state: "OPEN" | "MERGED" | "CLOSED";
-  base: string; head: string; draft: boolean; mergeable: Mergeable; review: string; checks: PrChecks;
+  base: string; head: string; headOid?: string; draft: boolean; mergeable: Mergeable; review: string; checks: PrChecks;
 };
 // 카드·말풍선·MergeRec 에 남기는 PR 정보(카드 글은 이걸로 데몬이 만든다 — 모델이 쓴 글이 아니다)
 export type MergeInfo = Omit<PrStatus, "url" | "state" | "title">;
@@ -71,7 +71,7 @@ export function summarizeChecks(rollup: unknown): PrChecks {
 }
 
 // gh pr view --json … → PrStatus
-export const PR_FIELDS = "number,title,url,state,baseRefName,headRefName,isDraft,mergeable,reviewDecision,statusCheckRollup";
+export const PR_FIELDS = "number,title,url,state,baseRefName,headRefName,headRefOid,isDraft,mergeable,reviewDecision,statusCheckRollup";
 export function parsePrView(raw: unknown): PrStatus {
   const j = (typeof raw === "string" ? JSON.parse(raw) : raw) as any;
   const url = String(j?.url ?? "");
@@ -81,7 +81,7 @@ export function parsePrView(raw: unknown): PrStatus {
   const mergeable: Mergeable = j.mergeable === "MERGEABLE" || j.mergeable === "CONFLICTING" ? j.mergeable : "UNKNOWN";
   return {
     url: `https://github.com/${m[1]}/pull/${j.number}`, number: j.number, repo: m[1], title: String(j.title ?? "").slice(0, 200), state,
-    base: String(j.baseRefName ?? ""), head: String(j.headRefName ?? ""), draft: j.isDraft === true, mergeable,
+    base: String(j.baseRefName ?? ""), head: String(j.headRefName ?? ""), ...(typeof j.headRefOid === "string" && /^[0-9a-f]{40,64}$/.test(j.headRefOid) ? { headOid: j.headRefOid } : {}), draft: j.isDraft === true, mergeable,
     review: typeof j.reviewDecision === "string" ? j.reviewDecision : "", checks: summarizeChecks(j.statusCheckRollup),
   };
 }
@@ -111,7 +111,7 @@ export function realMergeCommit(prUrl: string): Promise<string | undefined> {
   });
 }
 
-export const infoOf = (s: PrStatus): MergeInfo => ({ number: s.number, repo: s.repo, base: s.base, head: s.head, draft: s.draft, mergeable: s.mergeable, review: s.review, checks: s.checks });
+export const infoOf = (s: PrStatus): MergeInfo => ({ number: s.number, repo: s.repo, base: s.base, head: s.head, ...(s.headOid ? { headOid: s.headOid } : {}), draft: s.draft, mergeable: s.mergeable, review: s.review, checks: s.checks });
 
 // ✓ 를 막는 이유(없으면 undefined). 실패한 검사는 필수 여부를 gh 가 알려 주지 않아 전부 막는다(더 안전한 쪽)
 export function mergeBlock(s: Pick<PrStatus, "checks" | "mergeable" | "draft"> & { state?: PrStatus["state"] }): string | undefined {
