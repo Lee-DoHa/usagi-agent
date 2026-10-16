@@ -17,7 +17,7 @@
 |---|---|---|
 | `bubble` | `Bubble`(아래) | 말풍선. 같은 `id`로 다시 오면 통째로 바꾼다 |
 | `clear` | `{ id }` | 말풍선 걷기 |
-| `state` | `{ mood: idle\|thinking\|working\|alert, activity: idle\|studying\|dancing, runs: [{ id, kind, title, startedAt }], danceId?, character }` | 캐릭터 상태. `character`는 고른 캐릭터 id(`shisa`·`hachi`·`rakko`·`momonga`)이고, 바뀌면 바로 다시 보낸다 |
+| `state` | `{ mood: idle\|thinking\|working\|alert, activity: idle\|studying\|dancing, runs: [{ id, kind, title, startedAt }], danceId?, character }` | 캐릭터 상태. `character`는 고른 캐릭터 id(`shisa`·`hachi`·`rakko`·`momonga`·`usagi`)이고, 바뀌면 바로 다시 보낸다 |
 | `status` | `{ status: Status }` | 연결 상태가 바뀜(`GET /status`와 같은 모양) |
 | `dashboard` | `{}` | 대시보드를 다시 가져오라는 신호 |
 | `open_panel` | `{ section: overview\|projects\|todos\|today\|chat\|null }` | 패널을 그 탭으로 열기 |
@@ -100,7 +100,7 @@ type Bubble = {
   "readSessions": true,                                   // 작업 기록 읽기 켜고 끄기
   "onboarded": true,                                      // 설치 마법사를 마침(마법사가 보낸다)
   "calendarAlert": { "minutesBefore": [15, 5] },          // 일정 몇 분 전(양의 정수, 개수·크기 상한 없음). [] = 알림 끔, 기본 [10]
-  "character": "hachi"                                    // shisa·hachi·rakko·momonga. 모르는 값은 400
+  "character": "hachi"                                    // shisa·hachi·rakko·momonga·usagi. 모르는 값은 400
 }
 ```
 

@@ -29,6 +29,38 @@ test("캐릭터: 모르는 값은 시사, 고르면 바로 바뀐다", () => {
   assert.equal(TONE, CHARACTERS.shisa.tone); // 상수는 시사 그대로(고정 프롬프트의 바꿀 자리)
 });
 
+test("우사기: 저장·재시작·SSE·기본 문구에 적용되고 사용자가 고친 문구는 유지된다", () => {
+  const path = join(mkdtempSync(join(tmpdir(), "cy-usagi-")), "config.json");
+  const settings = new Settings(loadConfig({}, {}), { path, env: {} });
+  assert.ok(settings.put({ character: "usagi" }).ok);
+  assert.equal(character().name, "우사기");
+  assert.equal(new Bus().state().character, "usagi");
+  assert.ok(settings.put({ phrases: { hello: "내 인사" } }).ok);
+  const saved = JSON.parse(readFileSync(path, "utf8"));
+  assert.equal(saved.character, "usagi");
+  setCharacter("shisa");
+  const restarted = new Settings(loadConfig({}, saved), { path, env: {} });
+  assert.equal(restarted.view().character, "usagi");
+  assert.equal(phrase("hello"), "내 인사");
+  assert.equal(phrase("merge_ask", { title: "수정" }), "'수정' PR을 머지할까?");
+});
+
+test("우사기: 중요 안내에는 외침이 없고, 인사에 외침을 두 번 붙이지 않는다", () => {
+  setCharacter("usagi");
+  const serious = ["meeting_alert", "proposal_ask", "proposal_ask_fix", "proposal_go",
+    ...Object.keys(CHARACTERS.usagi.phrases).filter((k) => /^(fix_|merge_|followup_)/.test(k))];
+  for (const k of serious) for (const text of CHARACTERS.usagi.phrases[k]) {
+    assert.doesNotMatch(text, /야하|우라|푸루|하\?/u, k);
+  }
+  for (let i = 0; i < 40; i++) {
+    const text = "야하! 오늘도 같이 보자!";
+    assert.equal(voice(text, `usagi-${i}`), text);
+    for (const kind of ["error", "merge", "approval", "meeting", "progress"] as const) {
+      assert.equal(voice("확인이 필요해.", `usagi-${i}`, { kind }), "확인이 필요해.");
+    }
+  }
+});
+
 test("시스템 프롬프트: 시사면 글자 하나 안 바뀌고, 다른 캐릭터면 모든 프롬프트에서 시사 소개·말투가 그 캐릭터 것으로", () => {
   for (const [name, sys] of Object.entries(SYSTEMS)) {
     assert.ok(sys.includes(SHISA_PERSONA), `${name}: 바꿀 자리(시사 소개+말투)가 없다`);
@@ -185,4 +217,14 @@ test("춤춰 줘·응원해 줘 칩: 캐릭터 말, 누를 때마다 줄을 고�
   a.startDance(1000, "cheer");
   assert.equal(a.snapshot().danceClip, "cheer");
   assert.equal(a.snapshot().activity, "dancing");
+});
+
+test("우사기 춤: 머리 위 대사는 요청한 외침을 그대로 유지한다", () => {
+  setCharacter("usagi");
+  const expected = "이-야~ 야하 야하! 우-라 푸루푸루 하! 우라~!";
+  const facts = { now: new Date("2026-10-16T00:00:00Z"), today: [], open: [], calendar: { enabled: false, meetings: [] } };
+  for (const seed of ["one", "two", "three"]) assert.equal(quickAnswer("dance", facts, seed).text, expected);
+  assert.equal(phrase("dance"), expected);
+  setPhrases({ dance: "내가 고친 대사" });
+  assert.equal(quickAnswer("dance", facts).text, "내가 고친 대사");
 });

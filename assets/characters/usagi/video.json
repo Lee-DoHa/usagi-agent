@@ -1,0 +1,62 @@
+{
+  "study": {
+    "file": "study.webm",
+    "poster": "study.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/study.png",
+    "motion": "gentle-bob"
+  },
+  "plan": {
+    "file": "plan.webm",
+    "poster": "plan.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/cheetara-sheet.png",
+    "motion": "cheetara-wing-flap-jump",
+    "poses": 4,
+    "poseFps": 8,
+    "alignment": "artwork/usagi/alignment.json",
+    "jumpPixels": 48
+  },
+  "cheer": {
+    "file": "cheer.webm",
+    "poster": "cheer.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/cheetara-sheet.png",
+    "motion": "cheetara-wing-flap-jump",
+    "poses": 4,
+    "poseFps": 8,
+    "alignment": "artwork/usagi/alignment.json",
+    "jumpPixels": 48
+  },
+  "dance": {
+    "file": "dance.webm",
+    "poster": "dance.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/rap-sheet.png",
+    "motion": "sunglasses-rap-four-poses",
+    "poses": 4,
+    "poseFps": 4,
+    "alignment": "artwork/usagi/alignment.json",
+    "jumpPixels": 0
+  }
+}
