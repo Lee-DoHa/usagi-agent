@@ -100,17 +100,19 @@
     "note": "우사기와 다른 캐릭터를 구분해 자세별 원본을 선별. 실제 입력으로 채택한 자료는 sources의 role에 기록."
   },
   "motionRevision": {
-    "spin": {
-      "post": "https://x.com/ngnchiikawa/status/1247515716351193096",
-      "image": "https://pbs.twimg.com/media/EVAQ7MSUUAE4YRY?format=jpg&name=large",
-      "role": "Original belly-level forearm rolling pose; index cross-reference, post text unavailable (403)"
-    },
     "rap": {
       "site": "https://chiikawa.toho-movie.jp/#homeTrailer",
       "video": "https://www.youtube.com/watch?v=sT1A-4zjKqQ",
       "channel": "東宝MOVIEチャンネル",
       "thumbnail": "https://i.ytimg.com/vi/sT1A-4zjKqQ/hqdefault.jpg",
       "role": "Black sunglasses, gold necklace, microphone; exclude stage and text"
+    },
+    "cheetara": {
+      "post": "https://x.com/ngnchiikawa/status/1452645677792567297",
+      "image": "https://pbs.twimg.com/media/FCjVirLVkAMTLyP.jpg",
+      "animeFrameIndex": "https://ameblo.jp/jffy/entry-12914400469.html",
+      "animeImage": "https://stat.ameba.jp/user_images/20250704/09/jffy/22/f8/j/o1080060715628206424.jpg",
+      "role": "Sideways flapping with split cheetara; one yellow cheese strip plus two thin cod strips, joined at middle and splayed at both ends"
     }
   }
 }

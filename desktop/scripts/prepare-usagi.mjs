@@ -12,6 +12,7 @@ const out = path.join(root, 'assets/characters/usagi');
 const ffmpeg = process.env.FFMPEG ?? 'ffmpeg';
 const ff = (...args) => execFileSync(ffmpeg, ['-hide_banner', '-v', 'error', '-y', ...args], { stdio: 'inherit' });
 const fit = 'format=rgba,premultiply=inplace=1,scale=448:448:flags=lanczos,unpremultiply=inplace=1,pad=512:512:32:32:color=0x00000000';
+const spriteFit = 'format=rgba,premultiply=inplace=1,scale=416:416:flags=lanczos,unpremultiply=inplace=1,pad=512:512:48:48:color=0x00000000';
 const encode = ['-an', '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-b:v', '0', '-crf', '32', '-auto-alt-ref', '0'];
 const fps = 24, duration = 4;
 fs.mkdirSync(out, { recursive: true });
@@ -28,13 +29,13 @@ try {
   meta.study = { file: 'study.webm', poster: 'study.png', size: 512, fps, frames: fps * duration, duration,
     scene: false, alpha: true, source: 'artwork/usagi/study.png', motion: 'gentle-bob' };
 
-  for (const [sheet, names, poseFps, motion] of [
-    ['spin-sheet', ['plan', 'dance'], 8, 'forearm-roll-four-poses'],
-    ['rap-sheet', ['cheer'], 4, 'sunglasses-rap-four-poses'],
+  for (const [sheet, names, poseFps, motion, jump] of [
+    ['cheetara-sheet', ['plan', 'cheer'], 8, 'cheetara-wing-flap-jump', true],
+    ['rap-sheet', ['dance'], 4, 'sunglasses-rap-four-poses', false],
   ]) {
     for (let i = 0; i < 4; i++) {
       const crop = `crop=iw/2:ih/2:${i % 2}*iw/2:${Math.floor(i / 2)}*ih/2`;
-      ff('-i', path.join(source, `${sheet}.png`), '-vf', `${crop},${fit}`, '-frames:v', '1', '-pix_fmt', 'rgba', path.join(scratch, `${i}.png`));
+      ff('-i', path.join(source, `${sheet}.png`), '-vf', `${crop},${spriteFit}`, '-frames:v', '1', '-pix_fmt', 'rgba', path.join(scratch, `${i}.png`));
     }
     // 24fps 시간축에 자세를 반복 배치한다. 두 동작 모두 마지막 프레임 다음이 첫 자세로 이어진다.
     for (let frame = 0; frame < fps * duration; frame++) {
@@ -43,12 +44,16 @@ try {
     }
     const first = names[0];
     fs.copyFileSync(path.join(scratch, '0.png'), path.join(out, `${first}.png`));
-    ff('-framerate', String(fps), '-i', path.join(scratch, 'frame-%03d.png'), '-vf', 'format=yuva420p',
+    // B안은 몸 옆 날개짓과 함께 0.5초마다 펄쩍 뛴다. 여백 안에서 최대 48px 올라간다.
+    const graph = jump
+      ? `color=c=black@0:s=512x512:r=${fps}:d=${duration},format=rgba[bg];[0:v]format=rgba[s];[bg][s]overlay=x=0:y='-24*(1-cos(4*PI*t))':format=auto:shortest=1,format=yuva420p[v]`
+      : '[0:v]format=yuva420p[v]';
+    ff('-framerate', String(fps), '-i', path.join(scratch, 'frame-%03d.png'), '-filter_complex', graph, '-map', '[v]',
       '-frames:v', String(fps * duration), ...encode, path.join(out, `${first}.webm`));
     for (const name of names) {
       if (name !== first) for (const ext of ['png', 'webm']) fs.copyFileSync(path.join(out, `${first}.${ext}`), path.join(out, `${name}.${ext}`));
       meta[name] = { file: `${name}.webm`, poster: `${name}.png`, size: 512, fps, frames: fps * duration, duration,
-        scene: false, alpha: true, source: `artwork/usagi/${sheet}.png`, motion, poses: 4, poseFps };
+        scene: false, alpha: true, source: `artwork/usagi/${sheet}.png`, motion, poses: 4, poseFps, jumpPixels: jump ? 48 : 0 };
     }
   }
   fs.writeFileSync(path.join(out, 'video.json'), JSON.stringify(meta, null, 2) + '\n');
