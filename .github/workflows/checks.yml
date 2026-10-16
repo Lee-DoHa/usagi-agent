@@ -52,7 +52,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15
     env:
-      CY_AGENT_HOME: ${{ runner.temp }}/cy-agent-ci
+      CY_AGENT_HOME: ${{ github.workspace }}/.cy-agent-ci
       TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
