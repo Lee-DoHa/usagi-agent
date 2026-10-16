@@ -33,8 +33,10 @@ test('캐릭터 그림·영상: 주소가 다 허용 목록에 있고 레포 ass
   }
   // 시사는 예전 자리 그대로
   assert.deepEqual(characterAssets('shisa').videos, VIDEOS);
-  // 시사 외 캐릭터도 눈 감은 그림이 있어 시사처럼 깜빡인다, 장면 영상은 카드로
-  for (const id of OTHERS) assert.ok(characterAssets(id).closed, id);
+  // 우사기는 임의로 각색한 감은 눈을 사용하지 않는다. 기존 캐릭터의 깜빡임은 유지한다.
+  for (const id of OTHERS.filter((id) => id !== 'usagi')) assert.ok(characterAssets(id).closed, id);
+  assert.equal(characterAssets('usagi').closed, null);
+  assert.equal(resolveAsset('cy-asset://app/characters/usagi/eyes_closed.png'), null);
   assert.equal(characterAssets('rakko').videos.dancing.scene, true);
   assert.equal(characterAssets('hachi').videos.dancing.scene, false);
 });

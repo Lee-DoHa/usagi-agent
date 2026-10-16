@@ -13,7 +13,7 @@ const ffmpeg = process.env.FFMPEG ?? 'ffmpeg';
 const ff = (...args) => execFileSync(ffmpeg, ['-hide_banner', '-v', 'error', '-y', ...args], { stdio: 'inherit' });
 fs.mkdirSync(out, { recursive: true });
 
-const stills = { idle: 'eyes_open', closed: 'eyes_closed', study: 'study', active: 'plan', cheer: 'cheer' };
+const stills = { idle: 'eyes_open', study: 'study', active: 'plan', cheer: 'cheer' };
 for (const [input, output] of Object.entries(stills)) {
   ff('-i', path.join(source, `${input}.png`), '-vf',
     'format=rgba,premultiply=inplace=1,scale=448:448:flags=lanczos,unpremultiply=inplace=1,pad=512:512:32:32:color=0x00000000',
@@ -40,4 +40,4 @@ for (const [name, c] of Object.entries(clips)) {
     source: `artwork/usagi/${{ study: 'study', plan: 'active', cheer: 'cheer' }[c.input]}.png`, motion: c.motion };
 }
 fs.writeFileSync(path.join(out, 'video.json'), JSON.stringify(meta, null, 2) + '\n');
-console.log('Usagi: 6 PNGs + 4 transparent VP9 loops → assets/characters/usagi');
+console.log('Usagi: 5 PNGs + 4 transparent VP9 loops → assets/characters/usagi');

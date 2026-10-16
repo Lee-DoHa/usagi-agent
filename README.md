@@ -36,7 +36,7 @@ macOS와 윈도우에서 쓸 수 있습니다.
 |---|---|---|---|
 | <img src="docs/images/characters/character-shisa.png" alt="시사: 안녕하세요! 곧 브리핑할게요"> | <img src="docs/images/characters/character-hachi.png" alt="하치와레: 안녕! 오늘도 열심히 해 보자. 파이팅!"> | <img src="docs/images/characters/character-rakko.png" alt="랏코: 그래, 왔군. 오늘도 열심히 달려볼까."> | <img src="docs/images/characters/character-momonga.png" alt="모몽가: 쳇! 또 보이는군."> |
 
-| 우사기: 대기·깜빡임 | 우사기: 집중 | 우사기: 알림·춤 | 우사기: 응원 |
+| 우사기: 대기 | 우사기: 집중 | 우사기: 알림·춤 | 우사기: 응원 |
 |---|---|---|---|
 | <img src="assets/characters/usagi/eyes_open.png" width="160" alt="긴 귀가 모두 보이는 정면 우사기"> | <img src="assets/characters/usagi/study.png" width="160" alt="파란 필기구로 그림을 그리는 우사기"> | <img src="assets/characters/usagi/plan.png" width="160" alt="짧게 한 손을 내민 우사기"> | <img src="assets/characters/usagi/cheer.png" width="160" alt="작은 부채를 들고 응원하는 우사기"> |
 

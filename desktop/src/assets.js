@@ -18,7 +18,7 @@ export const CHARACTER_FILES = [
 export const PICKABLE = ['hachi', 'rakko', 'momonga', 'usagi'];
 export const PICKABLE_FILES = PICKABLE.flatMap((id) => [
   [`characters/${id}/eyes_open.png`, 'image/png'],
-  [`characters/${id}/eyes_closed.png`, 'image/png'],
+  ...(id === 'usagi' ? [] : [[`characters/${id}/eyes_closed.png`, 'image/png']]),
   [`characters/${id}/study.webm`, 'video/webm'],
   [`characters/${id}/plan.webm`, 'video/webm'],
   [`characters/${id}/study.png`, 'image/png'],
