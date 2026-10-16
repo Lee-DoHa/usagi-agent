@@ -42,6 +42,7 @@ function setup(fix: { ok: boolean } = { ok: true }, extra: Record<string, unknow
   const agent = new Agent(cfg, store, bus, slack, {
     think: async () => thought,
     runFix: async (_c, _p, step) => { fixCalls++; step("Edit a.ts"); return { ...fix, summary: "바꿈", prUrl: fix.ok ? "https://github.com/x/y/pull/1" : undefined, branch: "cy/b", log: [] }; },
+    prStatus: async () => ({ url: "https://github.com/x/y/pull/1", number: 1, repo: "x/y", title: "test", state: "OPEN" as const, base: "main", head: "cy/b", headOid: "a".repeat(40), draft: false, mergeable: "MERGEABLE" as const, review: "", checks: { pass: 1, pending: 0, fail: 0, failing: [] } }),
     mergePr: () => "merged",
     git: async () => [],
     ...extra,

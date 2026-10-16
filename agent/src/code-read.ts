@@ -5,7 +5,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
 import { HOME_DIR, type Config } from "./config.ts";
 import { findRepos } from "./git.ts";
-import { IS_WIN, pathKey, pathWithin, realish, winLocalPath } from "./plat.ts";
+import { IS_WIN, isRealishUnknown, pathKey, pathWithin, realish, winLocalPath } from "./plat.ts";
 import type { Store, Todo, ChatTurn } from "./store.ts";
 import type { Verdict } from "./guard.ts";
 
@@ -23,9 +23,9 @@ export function isSecretPath(p: string): boolean {
     if (pathWithin(real, home)) return true;
     return pathKey(real).split("\\").some((part) => SECRET_NAMES.some((re) => re.test(part)));
   }
-  const abs = resolve(p);
-  if (abs === resolve(HOME_DIR, "config.json") || abs.startsWith(resolve(HOME_DIR) + sep)) return true; // ~/.cy-agent(토큰·DB)
-  return abs.split(sep).some((part) => SECRET_NAMES.some((re) => re.test(part)));
+  const paths = [resolve(p), realish(p)];
+  const home = realish(HOME_DIR);
+  return paths.some((abs) => isRealishUnknown(abs) || pathWithin(abs, home) || abs.split(sep).some((part) => SECRET_NAMES.some((re) => re.test(part))));
 }
 
 // 심볼릭 링크로 빠져나가지 못하게: 있는 데까지 실제 경로로 바꾼 뒤(plat.ts realish) 루트 안인지. Windows 는 대소문자 무시
