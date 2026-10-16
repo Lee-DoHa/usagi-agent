@@ -280,3 +280,12 @@ type FocusView = {
 ## 가짜 데몬
 
 `desktop/scripts/fake-daemon.mjs`가 위 계약의 대부분을 데모 데이터로 흉내 낸다. 녹화용 데모(`npm run demo`)는 여기에 `scripts/demo-data.mjs`의 `/demo/*` 경로를 더해 쓴다.
+
+
+## AI 공급자별 입력과 머지 검증
+
+- Claude Code는 기본 `contextMode: tools`에서 로컬 맥락 도구를 사용한다. 다른 공급자는 도구를 제공하지 않으므로 설정이 `tools`여도 채팅에 업무 맥락을 인라인으로 넣는다.
+- API 키 연결은 텍스트·이미지·PDF 블록을 해당 공급자의 입력 형식으로 전달한다. Codex JSON 경로는 텍스트 첨부만 전달한다. 파일을 로컬 경로로만 남겨 실제 내용을 받은 것처럼 처리하지 않는다.
+- OpenAI strict 스키마에서는 모든 속성을 required로 변환한다. 원래 선택 값의 생략은 응답을 받은 뒤 복원하며, 명시적 null이 삭제를 뜻하는 필드는 생략 표식과 구분한다.
+- 머지 승인 기록에는 head SHA를 남긴다. 실행 직전 SHA와 base·head 브랜치가 같아야 하며, 실제 명령에도 `--match-head-commit`을 전달한다. SHA가 없는 옛 기록은 새 머지 요청이 필요하다.
+- 이 포크의 업데이트 알림은 `Lee-DoHa/usagi-agent` 릴리스 목록에서 플랫폼별 파일을 고른다. 윈도우 릴리스의 `-windows`는 미리보기판 표시가 아니다.

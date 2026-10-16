@@ -78,7 +78,7 @@ gh release create "v$v-windows" "$d\Shisa-$v-Setup.exe" "$d\Shisa-$v-win-x64.zip
 
 - `--latest=false`: 맥 README의 「최신 릴리스에서 dmg 받기」가 깨지지 않게 「Latest」는 맥 릴리스에 둡니다.
 - 같은 이름의 파일을 바꿔 올리려면 `gh release upload "v$v-windows" <파일> --clobber`.
-- 새 버전 알림(`desktop/src/update-check.js`)은 `releases/latest` 하나만 보고, 그 릴리스에 이 PC용 파일(`-Setup.exe`·`-win-x64.zip`·`-<arch>.dmg`)이 있을 때만 뜹니다. 윈도우 릴리스를 Latest 로 두지 않으면 **윈도우 사용자는 새 버전 알림을 못 받습니다**. 다음 윈도우 버전 전에 알림이 `releases` 목록에서 이 PC용 파일이 든 가장 새 릴리스를 찾게 바꿔야 합니다.
+- 새 버전 알림(`desktop/src/update-check.js`)은 이 포크의 `releases?per_page=100` 목록에서 이 PC용 파일이 있는 가장 높은 정식 버전을 찾습니다. `v<버전>-windows` 태그의 `-windows`는 플랫폼 표기로 처리하므로 `--latest=false`로 올려도 윈도우 알림이 동작합니다. 아직 이 포크에 릴리스가 없으면 알리지 않습니다.
 - 받은 사람이 확인하려면 PowerShell에서 `Get-FileHash .\Shisa-<버전>-Setup.exe -Algorithm SHA256`을 SHA256SUMS 파일과 비교합니다.
 
 ## 남은 것
