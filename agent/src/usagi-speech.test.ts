@@ -5,6 +5,13 @@ import { PHRASES, phrase, setPhrases } from "./phrases.ts";
 import { voice } from "./voice.ts";
 import { localThought, quickAnswer, QUICK_ASKS } from "./local-mode.ts";
 import { CHAT_SYSTEM } from "./chat.ts";
+import { Chat, type ChatEvent } from "./chat.ts";
+import { Store } from "./store.ts";
+import { Settings } from "./settings.ts";
+import { loadConfig } from "./config.ts";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 afterEach(() => { installCharacters({}); setCharacter("shisa"); setPhrases({}); });
 
@@ -64,4 +71,23 @@ test("우사기: 새 캐릭터 편집 기능의 사용자 문구·말투와 기�
   assert.match(withCharacter(CHAT_SYSTEM), /내 말투/);
   setPhrases({ hello: "직접 저장한 인사" });
   assert.equal(phrase("hello"), "직접 저장한 인사");
+});
+
+test("우사기 춤: 설정 기본값 저장·채팅 이벤트·저장 기록에 두 줄 대사가 그대로 남는다", async () => {
+  const expected = "이-야~ 야하 야하!\n우-라 푸루푸루푸루!! 우라~!";
+  const cfg = loadConfig({}, { character: "usagi" });
+  const settings = new Settings(cfg, { path: join(mkdtempSync(join(tmpdir(), "usagi-dance-")), "config.json"), env: {} });
+  assert.ok(settings.put({ phrases: { dance: expected } }).ok);
+  assert.equal(phrase("dance"), expected, "기본값을 저장해도 두 개의 랜덤 대사로 나뉘지 않는다");
+  const events: ChatEvent[] = [];
+  const store = new Store(":memory:");
+  const chat = new Chat(cfg, store, {
+    emit: (event) => events.push(event), openPanel: () => {}, changed: () => {}, propose: async () => {},
+  }, async () => { throw new Error("춤은 모델을 부르지 않는다"); });
+  const sent = chat.send("춤춰 줘");
+  if ("error" in sent) throw new Error(sent.error);
+  await chat.idle();
+  const done = events.find((event) => event.status === "done");
+  assert.equal(done?.status === "done" ? done.text : null, expected);
+  assert.equal(store.threadMessages(sent.threadId).find((m) => m.role === "assistant")?.text, expected);
 });

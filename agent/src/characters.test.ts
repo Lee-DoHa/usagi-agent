@@ -220,9 +220,9 @@ test("춤춰 줘·응원해 줘 칩: 캐릭터 말, 누를 때마다 줄을 고�
   assert.equal(a.snapshot().activity, "dancing");
 });
 
-test("우사기 춤: 머리 위 대사는 요청한 외침을 그대로 유지한다", () => {
+test("우사기 춤: 머리 위 대사는 요청한 두 줄 외침을 그대로 유지한다", () => {
   setCharacter("usagi");
-  const expected = "이-야~ 야하 야하! 우-라 푸루푸루 하! 우라~!";
+  const expected = "이-야~ 야하 야하!\n우-라 푸루푸루푸루!! 우라~!";
   const facts = { now: new Date("2026-10-16T00:00:00Z"), today: [], open: [], calendar: { enabled: false, meetings: [] } };
   for (const seed of ["one", "two", "three"]) assert.equal(quickAnswer("dance", facts, seed).text, expected);
   assert.equal(phrase("dance"), expected);
