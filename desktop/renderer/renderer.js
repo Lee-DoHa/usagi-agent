@@ -563,7 +563,7 @@ function setMood(m) {
   daemonMood = MOODS.includes(m) ? m : 'idle';
   if (!isBusy(chat)) applyMood(daemonMood);
 }
-cy.onState((p) => { if (typeof p?.character === 'string') setCharacter(p.character); setMood(p?.mood); dispatchActivity({ type: 'state', activity: p?.activity, runs: p?.runs, danceId: p?.danceId }); });
+cy.onState((p) => { if (typeof p?.character === 'string') setCharacter(p.character); setMood(p?.mood); dispatchActivity({ type: 'state', activity: p?.activity, runs: p?.runs, danceId: p?.danceId, danceClip: p?.danceClip }); });
 
 cy.onConnection(({ connected }) => {
   wrap.classList.toggle('sleepy', !connected);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 import { CHARACTERS, CHARACTER_IDS, characterAssets, okCharacter, VIDEOS } from '../src/character.js';
 import { resolveAsset } from '../src/assets.js';
 import { sanitizeSettingsPatch } from '../src/settings.js';
@@ -10,11 +11,12 @@ import { cannedReply, resetCanned, CANNED_KEYS } from '../src/canned.js';
 import { CHARACTER_CANNED } from '../src/character-canned.js';
 import { personaFor, systemFor, isStockPersona, SISA_BASE, CHARACTER_BASES } from '../src/persona.js';
 
+const OTHERS = CHARACTER_IDS.filter((id) => id !== 'shisa');
 const ASSETS = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'assets');
 const fileOf = (url) => path.join(ASSETS, resolveAsset(url).rel);
 
-test('캐릭터: 넷, 모르는 id 는 시사', () => {
-  assert.deepEqual(CHARACTER_IDS, ['shisa', 'hachi', 'rakko', 'momonga']);
+test('캐릭터: 다섯, 모르는 id 는 시사', () => {
+  assert.deepEqual(CHARACTER_IDS, ['shisa', 'hachi', 'rakko', 'momonga', 'usagi']);
   for (const bad of [undefined, null, '', 'nope', '__proto__', 'constructor', 'Hachi', 3]) assert.equal(okCharacter(bad), 'shisa', String(bad));
   assert.equal(characterAssets('nope').id, 'shisa');
 });
@@ -31,14 +33,16 @@ test('캐릭터 그림·영상: 주소가 다 허용 목록에 있고 레포 ass
   }
   // 시사는 예전 자리 그대로
   assert.deepEqual(characterAssets('shisa').videos, VIDEOS);
-  // 셋 다 눈 감은 그림이 있어 시사처럼 깜빡인다, 장면 영상은 카드로
-  for (const id of ['hachi', 'rakko', 'momonga']) assert.ok(characterAssets(id).closed, id);
+  // 우사기는 임의로 각색한 감은 눈을 사용하지 않는다. 기존 캐릭터의 깜빡임은 유지한다.
+  for (const id of OTHERS.filter((id) => id !== 'usagi')) assert.ok(characterAssets(id).closed, id);
+  assert.equal(characterAssets('usagi').closed, null);
+  assert.equal(resolveAsset('cy-asset://app/characters/usagi/eyes_closed.png'), null);
   assert.equal(characterAssets('rakko').videos.dancing.scene, true);
   assert.equal(characterAssets('hachi').videos.dancing.scene, false);
 });
 
 test('캐릭터 영상: 알파 캐릭터는 VP9 알파, 장면은 정사각형 512', () => {
-  for (const id of ['hachi', 'rakko', 'momonga']) {
+  for (const id of OTHERS) {
     const meta = JSON.parse(fs.readFileSync(path.join(ASSETS, 'characters', id, 'video.json'), 'utf8'));
     for (const [name, view] of [['study', 'studying'], ['plan', 'dancing']]) {
       assert.equal(meta[name].size, 512, `${id}/${name}`);
@@ -49,14 +53,52 @@ test('캐릭터 영상: 알파 캐릭터는 VP9 알파, 장면은 정사각형 5
 });
 
 test('설정 저장 본문: character 는 아는 id 만', () => {
+  assert.deepEqual(sanitizeSettingsPatch({ character: 'usagi' }), { character: 'usagi' });
   assert.deepEqual(sanitizeSettingsPatch({ character: 'hachi' }), { character: 'hachi' });
   assert.deepEqual(sanitizeSettingsPatch({ character: 'shisa' }), { character: 'shisa' });
   for (const bad of ['nope', '', 1, null, ['hachi'], '__proto__']) assert.equal(sanitizeSettingsPatch({ character: bad }), null, String(bad));
 });
 
+test('우사기: 집중·알림·춤·응원은 각각 로컬 포스터와 투명 루프를 사용한다', () => {
+  const a = characterAssets('usagi');
+  const meta = JSON.parse(fs.readFileSync(path.join(ASSETS, 'characters/usagi/video.json'), 'utf8'));
+  const states = { study: a.videos.studying, ...a.clips };
+  assert.equal(new Set(Object.values(states).map((v) => v.src)).size, 4);
+  for (const [name, v] of Object.entries(states)) {
+    assert.equal(v.scene, false);
+    assert.ok(fs.existsSync(fileOf(v.poster)) && fs.existsSync(fileOf(v.src)), name);
+    assert.equal(meta[name].alpha, true, name);
+    assert.equal(meta[name].frames, meta[name].fps * meta[name].duration, name);
+    assert.equal(meta[name].size, 512, name);
+  }
+  for (const rel of ['artwork/usagi/idle.png', 'characters/usagi/source.png', 'characters/usagi/video.json']) {
+    assert.equal(resolveAsset(`cy-asset://app/${rel}`), null, '원본·메타데이터를 렌더러에 노출하지 않는다');
+  }
+});
+
+test('렌더러 SSE 수신: 패널에서 춤·응원을 연속으로 보내면 종류가 빠지지 않고 전달된다', async () => {
+  const { activityReducer, initialActivity, danceClipOf, clipFor } = await import('../src/character.js');
+  // 실제 렌더러가 등록하는 수신 콜백을 실행한다. reducer만 검사하면 수신 중 필드 누락을 잡지 못한다.
+  const source = fs.readFileSync(new URL('../renderer/renderer.js', import.meta.url), 'utf8');
+  const registration = source.split('\n').find((line) => line.startsWith('cy.onState('));
+  assert.ok(registration, '렌더러 state 수신 콜백');
+  let receive, state = initialActivity(), selected;
+  vm.runInNewContext(registration, {
+    cy: { onState: (fn) => { receive = fn; } },
+    setCharacter: (id) => { selected = id; }, setMood: () => {},
+    dispatchActivity: (action) => { state = activityReducer(state, action); },
+  });
+  for (const clip of ['plan', 'dance', 'cheer']) {
+    receive({ character: 'usagi', mood: 'idle', activity: 'dancing', runs: [], danceId: clip, danceClip: clip });
+    assert.equal(selected, 'usagi');
+    assert.equal(danceClipOf(state), clip);
+    assert.match(clipFor(characterAssets(selected), danceClipOf(state)).src, new RegExp(`/usagi/${clip}\\.webm$`));
+  }
+});
+
 test('정해진 말: 캐릭터마다 다르고, 고친 말은 캐릭터와 상관없이 이긴다', () => {
   const ctx = { open: 2, done: 1, next: '보고서', hour: 9 };
-  for (const id of ['hachi', 'rakko', 'momonga']) {
+  for (const id of OTHERS) {
     resetCanned();
     const pool = new Set();
     for (let i = 0; i < 12; i++) pool.add(cannedReply('who', ctx, { character: id }));
@@ -89,7 +131,7 @@ test('정해진 말 카탈로그: 아는 키만, 아는 자리표시만, 반말 
 test('말투 글(persona): 캐릭터마다, 기본 글은 다 「안 고친 것」으로 본다', () => {
   assert.equal(personaFor('gemini'), personaFor('gemini', 'shisa'));
   assert.ok(personaFor('gemini').startsWith(SISA_BASE));
-  for (const id of ['hachi', 'rakko', 'momonga']) {
+  for (const id of OTHERS) {
     const p = personaFor('claude', id);
     assert.ok(p.startsWith(CHARACTER_BASES[id]), id);
     assert.match(p, new RegExp(CHARACTERS[id].name));
@@ -106,6 +148,7 @@ test('이름: 「하치와레 비서」처럼, 모르는 id 는 시사', async (
   assert.equal(appName('hachi'), '하치와레 비서');
   assert.equal(appName('rakko'), '랏코 비서');
   assert.equal(appName('momonga'), '모몽가 비서');
+  assert.equal(appName('usagi'), '우사기 비서');
   assert.equal(characterName('nope'), '시사');
 });
 
@@ -120,7 +163,7 @@ test('설치 화면·둘러보기·오버레이 짧은 말: 캐릭터마다 모�
   const shisaTour = tourSteps({ ready: true, connected: ['calendar'] }).map((s) => s.text);
   assert.deepEqual(tourSteps({ ready: true, connected: ['calendar'] }, 'shisa').map((s) => s.text), shisaTour);
   const honorific = /(어|에|해|세|게|죠|예)요[.!?\s]|(어|에|해|세|게|죠|예)요$|습니다|시사|스이시/m;
-  for (const id of ['hachi', 'rakko', 'momonga']) {
+  for (const id of OTHERS) {
     const say = sayFor(id);
     for (const k of keys) {
       assert.ok(say[k] && say[k] !== SISA_SAY[k], `${id}: 설치 말 ${k} 이 시사 말 그대로`);
@@ -149,7 +192,7 @@ test('대사 파일: 캐릭터마다 모든 칸이 있고, 둘러보기 자리�
   const { SISA_SAY } = await import('../src/ai-onboard.js');
   const { LOCAL_SAY } = await import('../src/character.js');
   const TOUR = ['character_ready', 'character_noai', 'todos', 'todos_slack', 'chat_ready', 'chat_noai', 'today', 'today_cal', 'today_nocal', 'settings', 'settings_noslack'];
-  for (const id of ['hachi', 'rakko', 'momonga']) {
+  for (const id of OTHERS) {
     const c = lines[id];
     assert.equal(c.name, CHARACTERS[id].name);
     for (const k of ['intro', 'tone', 'persona']) assert.ok(c.prompt?.[k]?.trim(), `${id}: prompt.${k}`);

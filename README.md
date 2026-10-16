@@ -1,13 +1,15 @@
 # 시사 비서 (shisa-agent)
 
-화면 구석에 사는 작은 비서입니다. 캐릭터 "시사"가 할 일이나 회의, 브리핑을 말풍선으로 알려 주고, 캐릭터를 누르면 할 일과 대화를 모아 둔 패널이 열립니다. 캐릭터는 시사·하치와레·랏코·모몽가 중에서 고를 수 있습니다.
+이 저장소는 [원본 shisa-agent](https://github.com/cheo0y/shisa-agent)의 커스텀 포크입니다. 우사기 추가와 안정성 개선을 담고 있습니다. 우사기는 **설정 → 캐릭터 → 우사기**에서 고릅니다. [캐릭터 조사·말투·이미지와 README 분석](docs/usagi-character.md)에서 근거와 적용 범위를 볼 수 있습니다.
+
+화면 구석에 사는 작은 비서입니다. 캐릭터 "시사"가 할 일이나 회의, 브리핑을 말풍선으로 알려 주고, 캐릭터를 누르면 할 일과 대화를 모아 둔 패널이 열립니다. 캐릭터는 시사·하치와레·랏코·모몽가·우사기 중에서 고를 수 있습니다.
 할 일·대화·설정은 내 컴퓨터(`~/.cy-agent/`)에 저장됩니다. AI를 연결하면 답변에 필요한 업무 맥락과 첨부 내용이 선택한 AI 회사에 전송됩니다. 연결한 Slack·캘린더 등도 해당 서비스와 통신합니다.
 
 macOS와 윈도우에서 쓸 수 있습니다.
 
 새로 들어온 것:
 - 윈도우 버전을 추가했습니다. 설치는 [windows/README.md](windows/README.md)를 봐 주세요.
-- 캐릭터를 고를 수 있습니다. 시사에 더해 하치와레·랏코·모몽가가 있고, 캐릭터마다 그림과 말투가 다릅니다.
+- 우사기를 추가했습니다. 짧은 `야하!`·`우라!` 반응, 공부 그림, 일정·춤·응원 모션을 지원합니다. 중요한 작업 안내는 외침 없이 정확히 전달합니다.
 
 써 보시고 불편한 점이 있으면 [의견 보내기](#의견-보내기)로 알려 주세요!
 
@@ -21,7 +23,7 @@ macOS와 윈도우에서 쓸 수 있습니다.
 
 - 캐릭터를 한 번 누르면 패널이 열리고, 두 번 누르면 그 자리에서 바로 말을 걸 수 있습니다. AI를 연결하지 않았다면 두 번 눌렀을 때 「지금 할 일 뭐 있어요?」 같은 질문 칩이 뜨고, 고르면 바로 답해 줍니다. 오른쪽 클릭으로 메뉴를 열 수 있고, 끌어서 아무 데나 옮겨 둘 수도 있습니다.
 - 할 일 정리: 연결해 둔 Slack·캘린더·메일·이슈와 내 Claude Code·Codex 작업 기록을 읽어서 챙길 일을 우선순위별로 모아 줍니다. 줄을 두 번 누르면 제목과 설명을 그 자리에서 고칠 수 있고, ▶를 누르면 「(진행중)」이 붙고, 지운 할 일은 휴지통에 30일 동안 남습니다. 우선순위는 「오늘 꼭·이번 주·천천히·언젠가」로 나뉩니다. "앞으로 세미나는 언젠가로"처럼 말해 두면 규칙으로 기억합니다.
-- 캐릭터 고르기: 설정 창 「캐릭터」에서 시사·하치와레·랏코·모몽가 중 하나를 고릅니다. 고르면 바로 그림과 영상, 말투, 앱 이름(「하치와레 비서」처럼)이 같이 바뀝니다. 하치와레는 밝은 반말, 랏코는 엄격한 말투, 모몽가는 살짝 시비 거는 말투로 말합니다. 대사는 `assets/characters/lines.json` 한 파일에 모여 있어서 고치기 쉽습니다.
+- 캐릭터 고르기: 설정 창 「캐릭터」에서 시사·하치와레·랏코·모몽가·우사기 중 하나를 고릅니다. 고르면 바로 그림과 영상, 말투, 앱 이름(「우사기 비서」처럼)이 같이 바뀝니다. 하치와레는 밝은 반말, 랏코는 엄격한 말투, 모몽가는 살짝 시비 거는 말투, 우사기는 짧고 씩씩한 반말로 말합니다. 대사는 `assets/characters/lines.json` 한 파일에 모여 있어서 고치기 쉽습니다.
 - 응원해 줘·춤춰 줘: 캐릭터를 두 번 누르거나 입력창의 ＋를 누르면 「응원해 줘」, 「춤춰 줘」 같은 정해진 답 칩이 뜹니다. 고르면 캐릭터마다 다른 영상과 대사로 답합니다. AI를 연결해 둬도 ＋로 언제든 쓸 수 있습니다.
 - 브리핑: 평일 9~19시(한국 시간)에는 한 시간마다 지금 챙길 일을 짧게 정리해 드립니다. 메뉴의 「지금 브리핑」으로 아무 때나 부를 수도 있습니다.
 - 오늘 할 일: 할 일 중 오늘 할 것을 골라 할 일 탭과 같은 우선순위 묶음으로 봅니다. 아침마다 적어 달라고 알려 주고(설정에서 N시간마다·정한 시각·끄기), 절반·다 끝내면 응원해 줍니다. 이 맥에만 저장됩니다.
@@ -33,6 +35,14 @@ macOS와 윈도우에서 쓸 수 있습니다.
 | 시사 | 하치와레 | 랏코 | 모몽가 |
 |---|---|---|---|
 | <img src="docs/images/characters/character-shisa.png" alt="시사: 안녕하세요! 곧 브리핑할게요"> | <img src="docs/images/characters/character-hachi.png" alt="하치와레: 안녕! 오늘도 열심히 해 보자. 파이팅!"> | <img src="docs/images/characters/character-rakko.png" alt="랏코: 그래, 왔군. 오늘도 열심히 달려볼까."> | <img src="docs/images/characters/character-momonga.png" alt="모몽가: 쳇! 또 보이는군."> |
+
+| 우사기: 대기 | 우사기: 집중 | 우사기: 알림·춤 | 우사기: 응원 |
+|---|---|---|---|
+| <img src="assets/characters/usagi/eyes_open.png" width="160" alt="긴 귀가 모두 보이는 정면 우사기"> | <img src="assets/characters/usagi/study.png" width="160" alt="파란 필기구로 그림을 그리는 우사기"> | <img src="assets/characters/usagi/plan.png" width="160" alt="짧게 한 손을 내민 우사기"> | <img src="assets/characters/usagi/cheer.png" width="160" alt="작은 부채를 들고 응원하는 우사기"> |
+
+우사기 그림은 공식 이미지·라이선스 아트를 자세별로 참고해 제작한 생성 팬 아트입니다. [레퍼런스 검토](artwork/usagi/reference-review.md), [원본·프롬프트·자산 준비 방법](artwork/usagi/README.md)을 함께 제공합니다. 모션은 이 그림을 움직이는 짧은 루프이며 공식 애니메이션 영상이 아닙니다.
+
+<img src="docs/images/characters/settings-usagi.png" width="560" alt="가짜 데이터로 확인한 실제 설정 화면: 시사·하치와레·랏코·모몽가·우사기 중 선택">
 
 | 하치와레: 응원해 줘 | 랏코: 응원해 줘 | 모몽가: 춤춰 줘 | 랏코: 춤춰 줘 |
 |---|---|---|---|
@@ -79,7 +89,7 @@ AI 없이 쓰는 중에 캐릭터를 두 번 누르면 「오늘 할 일 얼마�
 
 #### 1. 내 맥에 맞는 파일 받기
 
-[Releases 페이지](https://github.com/cheo0y/shisa-agent/releases/latest)에서 내 맥에 맞는 dmg 파일을 받습니다.
+[이 포크의 Releases 페이지](https://github.com/Lee-DoHa/usagi-agent/releases)에서 내 맥에 맞는 dmg 파일을 받습니다. 우사기가 포함된 설치 파일은 아직 발행하지 않았습니다. 그전에는 아래 「터미널로 설치」로 이 저장소 코드를 받아 실행해 주세요. 원본 프로젝트의 dmg에는 이 포크의 우사기가 포함되지 않습니다.
 
 | 내 맥 | 받을 파일 |
 |---|---|
@@ -202,17 +212,17 @@ git은 코드를 내려받는 프로그램입니다. 1단계에서 Homebrew를 �
 ##### 3. 시사 받기
 
 ```bash
-git clone https://github.com/cheo0y/shisa-agent.git ~/shisa-agent
+git clone https://github.com/Lee-DoHa/usagi-agent.git ~/usagi-agent
 ```
 
 공개 레포라서 GitHub 계정이나 로그인 없이 바로 받아집니다. 계정은 Fork를 하거나 Issue, PR을 올릴 때만 필요합니다. 개발자라면 Fork해서 내 계정으로 받아 두고 마음대로 고쳐 쓰셔도 됩니다.
 
-git이 없다면 [레포 페이지](https://github.com/cheo0y/shisa-agent)에서 초록색 Code 버튼 → Download ZIP으로 받아도 됩니다. 압축을 풀고 폴더 이름을 `shisa-agent`로 바꾼 뒤 홈 폴더로 옮겨 두면 다음 단계는 똑같습니다. 다만 이 방법으로 받으면 새 버전도 ZIP을 다시 받아 설치해야 합니다.
+git이 없다면 [이 포크의 레포 페이지](https://github.com/Lee-DoHa/usagi-agent)에서 초록색 Code 버튼 → Download ZIP으로 받아도 됩니다. 압축을 풀고 폴더 이름을 `usagi-agent`로 바꾼 뒤 홈 폴더로 옮겨 두면 다음 단계는 똑같습니다. 다만 이 방법으로 받으면 새 버전도 ZIP을 다시 받아 설치해야 합니다.
 
 ##### 4. 설치 실행
 
 ```bash
-cd ~/shisa-agent && ./ops/install.sh
+cd ~/usagi-agent && ./ops/install.sh
 ```
 
 몇 분 걸리고, 끝나면 화면 오른쪽 아래에 시사가 나타납니다.
@@ -237,16 +247,16 @@ cd ~/shisa-agent && ./ops/install.sh
 새 버전 받기: 터미널에 아래 한 줄을 붙여 넣으면 GitHub에서 최신 버전을 받고, 설치해서 적용한 뒤, 시사를 다시 띄웁니다.
 
 ```bash
-cd ~/shisa-agent && ./ops/update.sh
+cd ~/usagi-agent && ./ops/update.sh
 ```
 
 `ops/update.sh`가 아직 없는 예전 버전이라면 이 한 줄을 대신 씁니다. 하는 일은 같습니다.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cheo0y/shisa-agent/main/ops/update.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Lee-DoHa/usagi-agent/main/ops/update.sh | SHISA_REPO=https://github.com/Lee-DoHa/usagi-agent.git SHISA_DIR="$HOME/usagi-agent" sh
 ```
 
-이 한 줄은 `~/shisa-agent` 폴더가 없으면 처음부터 받아서 설치까지 하므로, 새로 설치할 때 3·4단계 대신 써도 됩니다.
+이 한 줄은 `~/usagi-agent` 폴더가 없으면 처음부터 받아서 설치까지 하므로, 새로 설치할 때 3·4단계 대신 써도 됩니다.
 
 받은 뒤에는 바뀐 내용 목록이 나오고, 캐릭터가 잠깐 사라졌다가 다시 나타나면 끝입니다. 설정과 할 일 같은 데이터(`~/.cy-agent/`)는 그대로 남습니다.
 레포 폴더 안의 파일을 직접 고쳐 두었다면 덮어쓰지 않고 멈추니, 안내대로 정리한 뒤 다시 실행해 주세요.
@@ -255,7 +265,7 @@ Fork해서 쓰고 있다면 GitHub에서 「Sync fork」를 먼저 눌러 주세
 지우기:
 
 ```bash
-cd ~/shisa-agent && ./ops/uninstall.sh
+cd ~/usagi-agent && ./ops/uninstall.sh
 ```
 
 이 명령은 로그인 시 자동 실행 등록만 풉니다. 앱(`~/Applications/cy.app`)과 데이터 폴더(`~/.cy-agent/`)는 그대로 남으니, 완전히 지우려면 이 두 개도 직접 지워 주세요.
@@ -295,7 +305,7 @@ cd ~/shisa-agent && ./ops/uninstall.sh
 | Claude Code |  |  | [claude-code.md](docs/connect/claude-code.md) |
 | 그 밖의 읽기용 MCP(노션 등) |  |  | [more-mcp.md](docs/connect/more-mcp.md) |
 
-무엇을 연결하든 읽기만 합니다. 메일 보내기, Slack에 글쓰기, 일정 바꾸기 같은 쓰기 도구는 막아 두었습니다. 지금 무엇이 연결돼 있는지는 패널 「개요」의 연결 카드나 설정 창의 「연결 상태」에서 확인할 수 있습니다.
+정기 브리핑·수집에서는 연결한 서비스의 읽기 도구만 사용합니다. Claude Code를 연결한 대화에서 메일 보내기·Slack 글쓰기·일정 변경 등을 요청하면 승인 카드 또는 저장한 허용 규칙으로 처리합니다. 지금 무엇이 연결돼 있는지는 패널 「개요」의 연결 카드나 설정 창의 「연결 상태」에서 확인할 수 있습니다.
 
 설정은 대략 이런 모양입니다.
 
@@ -335,6 +345,7 @@ cd ~/shisa-agent && ./ops/uninstall.sh
 | `briefing.exclude` |  | `[]` | 브리핑에서 뺄 출처(`mail`·`calendar`·`slack`·`issues`·`sessions`) |
 | `calendarAlert.minutesBefore` |  | `[10]` | 일정 몇 분 전에 알릴지(양의 정수 분, 몇 개든, 예: `[15, 5]`, 하루 전은 `[1440]`). `[]`이면 알림을 끕니다. 설정 창 「일정 알림」에서 고칩니다 |
 | `phrases` |  | 기본 문구 | 캐릭터가 하는 정해진 말. 설정 창 「문구」에서 고칩니다 |
+| `character` |  | `shisa` | `shisa`·`hachi`·`rakko`·`momonga`·`usagi`. 설정 창에서 고르면 바로 적용됩니다 |
 | `gitAuthor.name` / `.email` | `CY_AGENT_GIT_NAME` / `CY_AGENT_GIT_EMAIL` | `git config --global` | "내 커밋" 판정과 자동 수정 커밋의 작성자 |
 | `briefingIntervalMin` · `ingestIntervalMin` · `slackIngestIntervalMin` |  | 60 · 10 · 5 | 주기(분) |
 | `port` | `CY_AGENT_PORT` | `47823` | 데몬과 앱이 주고받는 로컬 포트 |
@@ -352,7 +363,7 @@ cd ~/shisa-agent && ./ops/uninstall.sh
 
 앱은 새 버전이 나왔는지 보려고 하루에 한 번 GitHub(`api.github.com`)에 이 포크의 릴리스 목록에서 내 운영체제에 맞는 최신 버전을 찾습니다. 이때 내 데이터는 보내지 않고, 설정의 「이 앱」에서 끌 수 있습니다.
 
-브리핑과 대화는 읽기 전용입니다. 커넥터의 쓰기 도구는 훅에서 막습니다(`agent/src/guard.ts`).
+정기 브리핑·수집은 읽기 전용입니다(`agent/src/guard.ts`). 사용자가 직접 요청한 Claude Code 대화는 별도의 권한 정책을 씁니다(`agent/src/permissions.ts`). 외부 서비스 쓰기는 승인 카드 또는 저장한 허용 규칙을 따르고, 로컬 파일·셸 작업은 `localAutoAllow`가 기본으로 켜져 있어 개별 확인 없이 실행될 수 있습니다. 비밀 파일·보호 브랜치 등 하드 차단은 이 설정과 별도로 적용됩니다.
 
 코드 고치기에는 다음과 같은 제한을 두었습니다.
 
