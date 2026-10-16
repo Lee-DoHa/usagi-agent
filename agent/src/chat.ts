@@ -281,7 +281,7 @@ export async function converse(
   try { repo = relatedRepo(cfg, store, { todo: focus, text, history }); } catch {}
   const thread = threadId ? store.thread(threadId) : undefined;
   // 첨부: 목록·경로는 프롬프트 글에, 그림·PDF·글 내용은 블록으로(없으면 예전처럼 글 프롬프트만)
-  const att = attachments?.length && threadId ? attachmentInput(attachments, threadId) : undefined;
+  const att = attachments?.length && threadId ? attachmentInput(attachments, threadId, { inlineOnly: cfg.brain.provider !== "claude-code" }) : undefined;
   const prompt = chatPrompt(cfg, store, history, text, summary, focus, repo, thread, att?.note);
   const via: ActionVia = thread?.kind === "hover" ? "hover" : "chat";
   const r = await ask<ChatReply>(cfg, prompt, CHAT_SCHEMA, onStep, { ...chatAskOpts(cfg, text || attachmentsTitle(attachments), repo, threadId, via, model), ...(inlineContext(cfg) ? {} : { ctx: { ...ctx, store } }), ...(abort ? { abort } : {}), ...(att?.blocks.length ? { blocks: att.blocks } : {}), facts: brainFacts(store) });

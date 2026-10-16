@@ -230,7 +230,7 @@ export type ContentBlock =
   | { type: "text"; text: string }
   | { type: "image"; source: { type: "base64"; media_type: string; data: string } }
   | { type: "document"; source: { type: "base64"; media_type: "application/pdf"; data: string }; title?: string };
-export function attachmentInput(list: Attachment[], threadId: string, o: { dir?: string; read?: (p: string) => Buffer } = {}): { note: string; blocks: ContentBlock[] } {
+export function attachmentInput(list: Attachment[], threadId: string, o: { dir?: string; read?: (p: string) => Buffer; inlineOnly?: boolean } = {}): { note: string; blocks: ContentBlock[] } {
   const read = o.read ?? ((p: string) => readFileSync(p));
   const dir = o.dir ?? ATTACH_DIR;
   const blocks: ContentBlock[] = [];
@@ -240,7 +240,7 @@ export function attachmentInput(list: Attachment[], threadId: string, o: { dir?:
     const p = a.path ?? join(dir, threadId, a.file);
     const head = `- ${a.name} (${KIND_LABEL[a.kind]}, ${fmtSize(a.size)}) — ${p}`;
     let bytes: Buffer | undefined;
-    try { bytes = read(p); } catch { lines.push(`${head} — 파일을 못 읽었어요`); continue; }
+    try { bytes = read(p); } catch { if (o.inlineOnly) throw new Error(`첨부 파일을 읽지 못했어요: ${a.name}`); lines.push(`${head} — 파일을 못 읽었어요`); continue; }
     if (a.kind === "image" && bytes.length <= ATTACH_LIMITS.image && inline + bytes.length <= ATTACH_LIMITS.inline) {
       inline += bytes.length;
       blocks.push({ type: "image", source: { type: "base64", media_type: sniffImage(bytes) ?? a.mime, data: bytes.toString("base64") } });
@@ -254,6 +254,7 @@ export function attachmentInput(list: Attachment[], threadId: string, o: { dir?:
       blocks.push({ type: "text", text: `<첨부 name="${a.name.replace(/"/g, "'")}" path="${p}">\n${bytes.toString("utf8")}\n</첨부>` });
       lines.push(`${head} — 아래에 내용을 붙였다`);
     } else {
+      if (o.inlineOnly) throw new Error(`현재 AI 연결로 이 첨부를 전달할 수 없어요: ${a.name}. 작은 텍스트·이미지·PDF 파일을 사용하거나 Claude Code로 연결해 주세요`);
       lines.push(`${head} — ${a.kind === "image" || a.kind === "pdf" ? "커서 직접 안 붙였다. Read 로 열어 봐라" : "Read(글·그림·PDF·ipynb)나 Bash(unzip -p·python 등 — docx/xlsx/pptx 는 압축 XML)로 열어 봐라"}`);
     }
   }

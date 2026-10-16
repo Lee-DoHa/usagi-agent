@@ -4,6 +4,8 @@
 //
 // Codex 는 codex exec 한 번으로 브리핑·채팅 JSON, 그리고 뒤에서 도는 정리(feature-brain.ts: 끝난 할 일 판정·진행 확인·지식그래프·프로필 학습).
 // 도구·사용자 MCP 는 붙이지 않는다(CODEX_ARGS). 코드 고치기(fixer.ts)·MCP 읽기는 provider 와 상관없이 Claude Code 경로다.
+import type { ContentBlock } from "./attachments.ts";
+import { strictSchema, restoreOptionalFields } from "./strict-schema.ts";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { accessSync, constants } from "node:fs";
@@ -199,7 +201,7 @@ function geminiFailText(status: number): string {
 
 export async function geminiJson(
   cfg: Pick<Config, "brain" | "models">, prompt: string, schema: unknown,
-  opts: { system?: string; model?: string; fetch?: FetchLike; sleep?: (ms: number) => Promise<void>; env?: NodeJS.ProcessEnv } = {},
+  opts: { system?: string; model?: string; blocks?: ContentBlock[]; fetch?: FetchLike; sleep?: (ms: number) => Promise<void>; env?: NodeJS.ProcessEnv } = {},
 ): Promise<unknown> {
   const env = opts.env ?? process.env;
   const key = geminiKey(cfg, env);
@@ -209,7 +211,7 @@ export async function geminiJson(
   const fetchImpl = opts.fetch ?? fetch;
   const body = JSON.stringify({
     ...(opts.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
-    contents: [{ role: "user", parts: [{ text: `${prompt}\n\nJSON만 답하라. 도구 호출이나 코드 수정은 하지 마라.` }] }],
+    contents: [{ role: "user", parts: [{ text: `${prompt}\n\nJSON만 답하라. 도구 호출이나 코드 수정은 하지 마라.` }, ...(opts.blocks ?? []).map((b) => b.type === "text" ? { text: b.text } : { inlineData: { mimeType: b.source.media_type, data: b.source.data } })] }],
     generationConfig: { responseMimeType: "application/json", responseJsonSchema: schema },
   });
   // 키는 헤더에만. URL 쿼리에 넣지 않는다(로그·에러에 남기 쉬움).
@@ -268,7 +270,7 @@ export async function geminiJson(
 
 export async function openaiJson(
   cfg: Pick<Config, "brain" | "models">, prompt: string, schema: unknown,
-  opts: { system?: string; model?: string; fetch?: FetchLike; env?: NodeJS.ProcessEnv } = {},
+  opts: { system?: string; model?: string; blocks?: ContentBlock[]; fetch?: FetchLike; env?: NodeJS.ProcessEnv } = {},
 ): Promise<unknown> {
   const env = opts.env ?? process.env;
   const key = openaiKey(cfg, env);
@@ -277,7 +279,7 @@ export async function openaiJson(
   const fetchImpl = opts.fetch ?? fetch;
   const messages = [
     ...(opts.system ? [{ role: "system", content: opts.system }] : []),
-    { role: "user", content: `${prompt}\n\nJSON만 답하라. 도구 호출이나 코드 수정은 하지 마라.` },
+    { role: "user", content: opts.blocks?.length ? [{ type: "text", text: `${prompt}\n\nJSON만 답하라. 도구 호출이나 코드 수정은 하지 마라.` }, ...opts.blocks.map((b) => b.type === "text" ? b : b.type === "image" ? { type: "image_url", image_url: { url: `data:${b.source.media_type};base64,${b.source.data}` } } : { type: "file", file: { filename: b.title ?? "attachment.pdf", file_data: `data:application/pdf;base64,${b.source.data}` } })] : `${prompt}\n\nJSON만 답하라. 도구 호출이나 코드 수정은 하지 마라.` },
   ];
   let res: Response;
   try {
@@ -287,7 +289,7 @@ export async function openaiJson(
       body: JSON.stringify({
         model,
         messages,
-        response_format: { type: "json_schema", json_schema: { name: "cy_brain", strict: true, schema } },
+        response_format: { type: "json_schema", json_schema: { name: "cy_brain", strict: true, schema: strictSchema(schema) } },
       }),
     });
   } catch {
@@ -300,12 +302,12 @@ export async function openaiJson(
   const text = typeof content === "string"
     ? content
     : Array.isArray(content) ? content.map((p) => (asRecord(p)?.text as string) ?? "").join("") : "";
-  return parseModelJson(text, "OpenAI 응답에서 JSON을 읽지 못했어요.");
+  return restoreOptionalFields(parseModelJson(text, "OpenAI 응답에서 JSON을 읽지 못했어요."), schema);
 }
 
 export async function anthropicJson(
   cfg: Pick<Config, "brain" | "models">, prompt: string, schema: unknown,
-  opts: { system?: string; model?: string; fetch?: FetchLike; env?: NodeJS.ProcessEnv } = {},
+  opts: { system?: string; model?: string; blocks?: ContentBlock[]; fetch?: FetchLike; env?: NodeJS.ProcessEnv } = {},
 ): Promise<unknown> {
   const env = opts.env ?? process.env;
   const key = anthropicKey(cfg, env);
@@ -321,7 +323,7 @@ export async function anthropicJson(
         model,
         max_tokens: 16000,
         ...(opts.system ? { system: opts.system } : {}),
-        messages: [{ role: "user", content: `${prompt}\n\nJSON만 답하라. 도구 호출이나 코드 수정은 하지 마라.` }],
+        messages: [{ role: "user", content: opts.blocks?.length ? [{ type: "text", text: `${prompt}\n\nJSON만 답하라. 도구 호출이나 코드 수정은 하지 마라.` }, ...opts.blocks] : `${prompt}\n\nJSON만 답하라. 도구 호출이나 코드 수정은 하지 마라.` }],
         output_config: { format: { type: "json_schema", schema } },
       }),
     });
@@ -426,14 +428,15 @@ export function parseCodexUsage(stdout: string): CodexUsage {
   return { inTokens, outTokens };
 }
 
-export type CodexOpts = { system?: string; execFile?: ExecFileLike; commandExists?: (name: string) => boolean; timeoutMs?: number };
+export type CodexOpts = { blocks?: ContentBlock[]; system?: string; execFile?: ExecFileLike; commandExists?: (name: string) => boolean; timeoutMs?: number };
 
 // codex exec 한 번 → 마지막 답의 JSON + 토큰 수. 실패는 짧은 한국어(출력 본문은 넣지 않는다)
 export async function codexExec(prompt: string, schema: unknown, opts: CodexOpts = {}): Promise<{ out: unknown; usage: CodexUsage }> {
   const exists = opts.commandExists ?? ((name: string) => commandOnPath(name));
   if (!exists("codex")) throw new Error(MISSING_CODEX);
   const exec = opts.execFile ?? defaultExecFile;
-  const input = [opts.system ?? "", prompt, "도구를 부르지 말고 코드도 고치지 마라. 아래 JSON 스키마에 맞는 객체 하나만 답하라.", JSON.stringify(schema)].filter(Boolean).join("\n\n");
+  if (opts.blocks?.some((b) => b.type !== "text")) throw new Error("Codex 연결은 텍스트 첨부만 지원해요. 이미지·PDF는 Claude Code나 API 키 연결로 보내 주세요");
+  const input = [opts.system ?? "", prompt, ...(opts.blocks ?? []).map((b) => b.type === "text" ? b.text : ""), "도구를 부르지 말고 코드도 고치지 마라. 아래 JSON 스키마에 맞는 객체 하나만 답하라.", JSON.stringify(schema)].filter(Boolean).join("\n\n");
   let stdout = "";
   try {
     const result = await exec("codex", CODEX_ARGS, { input, timeout: opts.timeoutMs ?? CODEX_TIMEOUT_MS, cwd: tmpdir() });
@@ -451,7 +454,7 @@ export async function codexJson(prompt: string, schema: unknown, opts: CodexOpts
 export async function remoteJson(
   provider: Extract<BrainProvider, "gemini" | "openai" | "anthropic" | "codex">,
   cfg: Pick<Config, "brain" | "models">, prompt: string, schema: unknown,
-  opts: { system?: string; model?: string } & ProviderDeps = {},
+  opts: { system?: string; model?: string; blocks?: ContentBlock[] } & ProviderDeps = {},
 ): Promise<unknown> {
   if (provider === "gemini") return geminiJson(cfg, prompt, schema, opts);
   if (provider === "openai") return openaiJson(cfg, prompt, schema, opts);
