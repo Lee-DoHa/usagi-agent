@@ -20,20 +20,11 @@
     "duration": 4,
     "scene": false,
     "alpha": true,
-    "source": "artwork/usagi/active.png",
-    "motion": "reminder-hop"
-  },
-  "dance": {
-    "file": "dance.webm",
-    "poster": "dance.png",
-    "size": 512,
-    "fps": 24,
-    "frames": 96,
-    "duration": 4,
-    "scene": false,
-    "alpha": true,
-    "source": "artwork/usagi/active.png",
-    "motion": "side-to-side"
+    "source": "artwork/usagi/cheetara-sheet.png",
+    "motion": "cheetara-wing-flap-jump",
+    "poses": 4,
+    "poseFps": 8,
+    "jumpPixels": 48
   },
   "cheer": {
     "file": "cheer.webm",
@@ -44,7 +35,25 @@
     "duration": 4,
     "scene": false,
     "alpha": true,
-    "source": "artwork/usagi/cheer.png",
-    "motion": "cheer-hop"
+    "source": "artwork/usagi/cheetara-sheet.png",
+    "motion": "cheetara-wing-flap-jump",
+    "poses": 4,
+    "poseFps": 8,
+    "jumpPixels": 48
+  },
+  "dance": {
+    "file": "dance.webm",
+    "poster": "dance.png",
+    "size": 512,
+    "fps": 24,
+    "frames": 96,
+    "duration": 4,
+    "scene": false,
+    "alpha": true,
+    "source": "artwork/usagi/rap-sheet.png",
+    "motion": "sunglasses-rap-four-poses",
+    "poses": 4,
+    "poseFps": 4,
+    "jumpPixels": 0
   }
 }
