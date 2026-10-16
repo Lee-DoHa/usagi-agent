@@ -38,7 +38,7 @@ macOS와 윈도우에서 쓸 수 있습니다.
 
 | 우사기: 대기 | 우사기: 집중 | 우사기: 알림·춤 | 우사기: 응원 |
 |---|---|---|---|
-| <img src="assets/characters/usagi/eyes_open.png" width="160" alt="긴 귀가 모두 보이는 정면 우사기"> | <img src="assets/characters/usagi/study.png" width="160" alt="파란 필기구로 그림을 그리는 우사기"> | <img src="assets/characters/usagi/plan.png" width="160" alt="짧게 한 손을 내민 우사기"> | <img src="assets/characters/usagi/cheer.png" width="160" alt="작은 부채를 들고 응원하는 우사기"> |
+| <img src="assets/characters/usagi/eyes_open.png" width="160" alt="긴 귀가 모두 보이는 정면 우사기"> | <img src="assets/characters/usagi/study.png" width="160" alt="파란 필기구로 그림을 그리는 우사기"> | <img src="assets/characters/usagi/plan.png" width="160" alt="배 앞에서 양팔을 돌리는 우사기"> | <img src="assets/characters/usagi/cheer.png" width="160" alt="선글라스를 쓰고 랩하는 우사기"> |
 
 우사기 그림은 공식 이미지·라이선스 아트를 자세별로 참고해 제작한 생성 팬 아트입니다. [레퍼런스 검토](artwork/usagi/reference-review.md), [원본·프롬프트·자산 준비 방법](artwork/usagi/README.md)을 함께 제공합니다. 모션은 이 그림을 움직이는 짧은 루프이며 공식 애니메이션 영상이 아닙니다.
 

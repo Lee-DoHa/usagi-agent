@@ -20,8 +20,10 @@
     "duration": 4,
     "scene": false,
     "alpha": true,
-    "source": "artwork/usagi/active.png",
-    "motion": "reminder-hop"
+    "source": "artwork/usagi/spin-sheet.png",
+    "motion": "forearm-roll-four-poses",
+    "poses": 4,
+    "poseFps": 8
   },
   "dance": {
     "file": "dance.webm",
@@ -32,8 +34,10 @@
     "duration": 4,
     "scene": false,
     "alpha": true,
-    "source": "artwork/usagi/active.png",
-    "motion": "side-to-side"
+    "source": "artwork/usagi/spin-sheet.png",
+    "motion": "forearm-roll-four-poses",
+    "poses": 4,
+    "poseFps": 8
   },
   "cheer": {
     "file": "cheer.webm",
@@ -44,7 +48,9 @@
     "duration": 4,
     "scene": false,
     "alpha": true,
-    "source": "artwork/usagi/cheer.png",
-    "motion": "cheer-hop"
+    "source": "artwork/usagi/rap-sheet.png",
+    "motion": "sunglasses-rap-four-poses",
+    "poses": 4,
+    "poseFps": 4
   }
 }
