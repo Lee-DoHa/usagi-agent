@@ -1,6 +1,9 @@
 // AI 없이 더블클릭 → 고르는 질문 칩, 패널 연결 안내 카드 숨기기
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
+import { cannedReply } from '../src/canned.js';
 import { QUICK_CHIPS, QUICK_ID, ASK_IDS, isAskId, quickBubble, normQuick, chipsOf, chipAction, answerBubble } from '../src/quick-ask.js';
 import { normalizeBubble, clickTarget } from '../src/bubbles.js';
 import { brainView, connectCard, chatLock } from '../src/brain-state.js';
@@ -75,4 +78,42 @@ test('chatLock: AI 없으면 카드, 숨겼으면 다시 보기 링크만, AI �
   assert.equal(card.title, '지금은 AI 없이 쓰는 중이에요');
   assert.equal(card.hide, '숨기기');
   assert.equal(card.reopen, 'AI 연결 안내 보기');
+});
+
+// 실제 IPC 처리기를 실행해 패널 → 캐릭터 전달을 검증한다. Electron 창만 대신한다.
+test('패널 춤·응원: 답을 캐릭터 말풍선에도 전달하며 캐릭터 칩은 중복 전달하지 않는다', async () => {
+  const source = readFileSync(new URL('../main.js', import.meta.url), 'utf8');
+  const start = source.indexOf("  ipcMain.handle('local-ask',");
+  const end = source.indexOf('  // 집중하기(포커스 타이머)', start);
+  assert.ok(start >= 0 && end > start);
+  let handler;
+  const overlay = {}, panel = {}, stranger = {}, sent = [], calls = [];
+  let response = { ok: true, data: { answer: { text: '이-야~ 야하 야하! 우-라 푸루푸루 하! 우라~!', kind: 'done' } } };
+  runInNewContext(source.slice(start, end), {
+    ipcMain: { handle: (_name, fn) => { handler = fn; } },
+    win: { webContents: overlay }, panel: { webContents: panel },
+    isAskId, answerBubble, denied: () => ({ ok: false }),
+    post: async (url, body) => { calls.push({ url, body }); return response; },
+    send: (channel, payload) => sent.push({ channel, payload }), console: { warn() {} },
+  });
+  for (const id of ['dance', 'cheer']) {
+    assert.equal(await handler({ sender: panel }, id), response);
+    assert.equal(sent.at(-1).channel, 'bubble');
+    assert.equal(sent.at(-1).payload.text, response.data.answer.text);
+    assert.equal(sent.at(-1).payload.id, `local-ask-${id}`);
+  }
+  assert.equal(sent.length, 2);
+  await handler({ sender: overlay }, 'dance');
+  assert.equal(sent.length, 2, '캐릭터 칩은 자신의 렌더러가 답을 그린다');
+  const count = calls.length;
+  await handler({ sender: stranger }, 'dance');
+  await handler({ sender: panel }, 'unknown');
+  assert.equal(calls.length, count, '다른 창·모르는 명령은 데몬에 보내지 않는다');
+  response = { ok: false, error: 'ECONNREFUSED' };
+  await handler({ sender: panel }, 'dance');
+  assert.match(sent.at(-1).payload.text, /다시 눌러 주세요/);
+});
+
+test('우사기 춤: 패널의 정해진 답도 요청한 대사를 그대로 쓴다', () => {
+  assert.equal(cannedReply('dance', {}, { character: 'usagi' }), '이-야~ 야하 야하! 우-라 푸루푸루 하! 우라~!');
 });

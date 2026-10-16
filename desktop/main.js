@@ -33,7 +33,7 @@ import { KEY_PROVIDERS, normalizeSisa, publicView, withKey, withCli, withSkip, w
 import { personaFor } from './src/persona.js';
 import { okCharacter, characterName, appName } from './src/character.js';
 import { normStatus, brainView, sameView } from './src/brain-state.js';
-import { isAskId } from './src/quick-ask.js';
+import { isAskId, answerBubble } from './src/quick-ask.js';
 import { isFocusCmd, DAY_RE } from './src/focus.js';
 import { tourSteps, tourBubble, TOUR_VERSION } from './src/tour.js';
 import { NEW_DAEMON_CONFIG, cleanSetupPatch, openSetupAtLaunch, setupView } from './src/setup-plan.js';
@@ -1290,6 +1290,8 @@ function setupIPC() {
     if (!okSender || !isAskId(id)) { console.warn('[local-ask] 거절:', okSender ? `모르는 id ${id}` : '캐릭터·패널 창이 아님'); return denied(); }
     const r = await post('/local/ask', { id });
     if (!r.ok) console.warn('[local-ask] 실패:', id, r.status ?? '', r.error ?? r.data?.error ?? ''); // 칩 답이 「못 가져왔어요」 일 때 까닭
+    // 패널은 답을 채팅에만 그린다. 캐릭터 칩은 렌더러가 직접 그리므로 중복 전달하지 않는다.
+    if (e.sender === panel?.webContents) send('bubble', answerBubble(id, r));
     return r;
   });
   // 집중하기(포커스 타이머): 상태 · 시작/일시정지/다시 시작/그만 · 날마다 집중한 시간(from~to, 로컬 YYYY-MM-DD). AI 없이도 된다

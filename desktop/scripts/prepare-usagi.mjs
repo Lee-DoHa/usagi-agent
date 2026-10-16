@@ -12,7 +12,7 @@ const out = path.join(root, 'assets/characters/usagi');
 const ffmpeg = process.env.FFMPEG ?? 'ffmpeg';
 const ff = (...args) => execFileSync(ffmpeg, ['-hide_banner', '-v', 'error', '-y', ...args], { stdio: 'inherit' });
 const fit = 'format=rgba,premultiply=inplace=1,scale=448:448:flags=lanczos,unpremultiply=inplace=1,pad=512:512:32:32:color=0x00000000';
-const spriteFit = 'format=rgba,premultiply=inplace=1,scale=416:416:flags=lanczos,unpremultiply=inplace=1,pad=512:512:48:48:color=0x00000000';
+const alignment = JSON.parse(fs.readFileSync(path.join(source, 'alignment.json'), 'utf8'));
 const encode = ['-an', '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-b:v', '0', '-crf', '32', '-auto-alt-ref', '0'];
 const fps = 24, duration = 4;
 fs.mkdirSync(out, { recursive: true });
@@ -35,7 +35,15 @@ try {
   ]) {
     for (let i = 0; i < 4; i++) {
       const crop = `crop=iw/2:ih/2:${i % 2}*iw/2:${Math.floor(i / 2)}*ih/2`;
-      ff('-i', path.join(source, `${sheet}.png`), '-vf', `${crop},${spriteFit}`, '-frames:v', '1', '-pix_fmt', 'rgba', path.join(scratch, `${i}.png`));
+      // 소품까지 든 전체 폭 대신 머리 너비를 기본 그림에 맞춘다. 발바닥도 같은 기준선에 둔다.
+      const pose = alignment.sheets[sheet][i], ref = alignment.reference;
+      const scale = ref.headWidth / (pose.headRight - pose.headLeft);
+      const side = Math.round(627 * scale);
+      const actualScale = side / 627;
+      const x = Math.round(ref.headCenterX - (pose.headLeft + pose.headRight) / 2 * actualScale);
+      const y = Math.round(ref.feetY - pose.feetY * actualScale);
+      const graph = `color=c=black@0:s=512x512,format=rgba[bg];[0:v]${crop},format=rgba,premultiply=inplace=1,scale=${side}:${side}:flags=lanczos,unpremultiply=inplace=1[s];[bg][s]overlay=x=${x}:y=${y}:format=auto:shortest=1,format=rgba[v]`;
+      ff('-i', path.join(source, `${sheet}.png`), '-filter_complex', graph, '-map', '[v]', '-frames:v', '1', '-pix_fmt', 'rgba', path.join(scratch, `${i}.png`));
     }
     // 24fps 시간축에 자세를 반복 배치한다. 두 동작 모두 마지막 프레임 다음이 첫 자세로 이어진다.
     for (let frame = 0; frame < fps * duration; frame++) {
@@ -53,7 +61,7 @@ try {
     for (const name of names) {
       if (name !== first) for (const ext of ['png', 'webm']) fs.copyFileSync(path.join(out, `${first}.${ext}`), path.join(out, `${name}.${ext}`));
       meta[name] = { file: `${name}.webm`, poster: `${name}.png`, size: 512, fps, frames: fps * duration, duration,
-        scene: false, alpha: true, source: `artwork/usagi/${sheet}.png`, motion, poses: 4, poseFps, jumpPixels: jump ? 48 : 0 };
+        scene: false, alpha: true, source: `artwork/usagi/${sheet}.png`, motion, poses: 4, poseFps, alignment: 'artwork/usagi/alignment.json', jumpPixels: jump ? 48 : 0 };
     }
   }
   fs.writeFileSync(path.join(out, 'video.json'), JSON.stringify(meta, null, 2) + '\n');

@@ -24,6 +24,7 @@
     "motion": "cheetara-wing-flap-jump",
     "poses": 4,
     "poseFps": 8,
+    "alignment": "artwork/usagi/alignment.json",
     "jumpPixels": 48
   },
   "cheer": {
@@ -39,6 +40,7 @@
     "motion": "cheetara-wing-flap-jump",
     "poses": 4,
     "poseFps": 8,
+    "alignment": "artwork/usagi/alignment.json",
     "jumpPixels": 48
   },
   "dance": {
@@ -54,6 +56,7 @@
     "motion": "sunglasses-rap-four-poses",
     "poses": 4,
     "poseFps": 4,
+    "alignment": "artwork/usagi/alignment.json",
     "jumpPixels": 0
   }
 }
